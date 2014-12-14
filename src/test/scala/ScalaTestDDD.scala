@@ -1,5 +1,4 @@
-import com.de.scalasourcing._
-import Operations._
+import com.de.scalasourcing.EventSourcing._
 import org.scalatest.Matchers._
 
 import scala.reflect.Manifest
@@ -7,22 +6,21 @@ import scala.util.Try
 
 trait ScalaTestDDD
 {
-    def given[A, E](events: E*)(implicit ea: Applicator[A, E]): FlowGiven[A] =
+    def given[S](events: EventOf[S]*)(implicit ea: Applicator[S]): FlowGiven[S] =
     {
         FlowGiven(events toState)
     }
 
-    case class FlowGiven[A]
-    (state: Option[A])
+    case class FlowGiven[S]
+    (state: Option[S])
     {
-        def ??[E, C](command: C)(implicit es: Sourcer[A, E, C]): FlowWhen[E] =
+        def ??(command: CommandOf[S])(implicit es: Sourcer[S]): FlowWhen[S] =
             FlowWhen(state !! command)
     }
 
-    case class FlowWhen[E]
-    (eventsTry: Try[Seq[E]])
+    case class FlowWhen[S](eventsTry: Try[Seq[EventOf[S]]])
     {
-        def -->(expected: E*) = eventsTry.get should equal(expected)
+        def -->(expected: EventOf[S]*) = eventsTry.get should equal(expected)
 
         def !!![T <: AnyRef](implicit m: Manifest[T]): T =
             intercept[T]
