@@ -1,12 +1,11 @@
 package com.de.scalasourcing
 
-import scala.util.Try
-
 object EventSourcing
 {
     trait EventOf[S]
     trait CommandOf[S]
     trait ErrorOf[S]
+    type Sourcing[S] = Either[Seq[EventOf[S]], ErrorOf[S]]
 
     trait Applicator[S]
     {
@@ -21,7 +20,7 @@ object EventSourcing
 
     trait Sourcer[S]
     {
-        def apply(agg: Option[S], command: CommandOf[S]): Seq[EventOf[S]]
+        def apply(agg: Option[S], command: CommandOf[S]): Sourcing[S]
     }
 
     implicit class StateEx[S](val state: Option[S]) extends AnyVal
@@ -36,14 +35,9 @@ object EventSourcing
             a(state, events)
         }
 
-        def !(command: CommandOf[S])(implicit s: Sourcer[S]): Seq[EventOf[S]] =
+        def !(command: CommandOf[S])(implicit s: Sourcer[S]): Sourcing[S] =
         {
             s(state, command)
-        }
-
-        def !!(command: CommandOf[S])(implicit a: Sourcer[S]): Try[Seq[EventOf[S]]] =
-        {
-            Try(a(state, command))
         }
     }
 
@@ -54,14 +48,14 @@ object EventSourcing
             a(events)
         }
 
-        def !(events: Seq[EventOf[S]], command: CommandOf[S])(implicit a: Applicator[S], s: Sourcer[S]): Seq[EventOf[S]] =
+        def !(events: Seq[EventOf[S]], command: CommandOf[S])(implicit a: Applicator[S], s: Sourcer[S]): Sourcing[S] =
         {
             events.toState ! command
         }
-
-        def !!(events: Seq[EventOf[S]], command: CommandOf[S])(implicit a: Applicator[S], s: Sourcer[S]): Try[Seq[EventOf[S]]] =
-        {
-            events.toState !! command
-        }
     }
+
+    implicit def ok[S](e: S): Option[S] = Some(e)
+
+    implicit def ok[S](e: EventOf[S]): Sourcing[S] = Left(Seq(e))
+    implicit def error[S](e: ErrorOf[S]): Sourcing[S] = Right(e)
 }

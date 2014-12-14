@@ -8,42 +8,41 @@ object TodoItemRoot
     type State = Option[TodoItem]
     type Command = CommandOf[TodoItem]
     type Event = EventOf[TodoItem]
+    type Error = ErrorOf[TodoItem]
 
     implicit object Sourcer extends Sourcer[TodoItem]
     {
-        def apply(state: State, command: Command): Seq[Event] = state match
+        def apply(state: State, command: Command): Sourcing[TodoItem] = state match
         {
-            case None                    => applyToNone (command)
-            case Some (TodoItem (title)) => applyToSome (command, title)
+            case None                  => applyToNone(command)
+            case Some(TodoItem(title)) => applyToSome(command, title)
         }
 
-        def applyToNone(command: Command): Seq[Event] = command match
+        def applyToNone(command: Command): Sourcing[TodoItem] = command match
         {
-            case Add (title) => addItem (title)
-            case Edit (_)    => throw DoesNotExistError ()
-            case Remove ()   => throw DoesNotExistError ()
+            case Add(title) => addItem(title)
+            case Edit(_)    => DoesNotExist()
+            case Remove()   => DoesNotExist()
         }
 
-        def applyToSome(command: Command, title: String): Seq[Event] = command match
+        def applyToSome(command: Command, title: String): Sourcing[TodoItem] = command match
         {
-            case Add (_)         => throw AlreadyExistsError ()
-            case Edit (newTitle) => editExistingItem (title, newTitle)
-            case Remove ()       => Seq (Removed ())
+            case Add(_)         => AlreadyExists()
+            case Edit(newTitle) => editExistingItem(title, newTitle)
+            case Remove()       => Removed()
         }
 
-        private def addItem(title: String): Seq[Event] =
+        private def addItem(title: String): Sourcing[TodoItem] =
         {
-            if (title.trim.isEmpty) throw EmptyTitleError ()
-
-            Seq (Added (title))
+            if (title.trim.isEmpty) EmptyTitle()
+            else Added(title)
         }
 
-        private def editExistingItem(title: String, newTitle: String): Seq[Event] =
+        private def editExistingItem(title: String, newTitle: String): Sourcing[TodoItem] =
         {
-            if (newTitle.trim.isEmpty) throw EmptyTitleError ()
-            if (newTitle == title) throw SameTitleError ()
-
-            Seq (Edited (newTitle))
+            if (newTitle.trim.isEmpty) EmptyTitle()
+            else if (newTitle == title) SameTitle()
+            else Edited(newTitle)
         }
     }
 
@@ -51,10 +50,10 @@ object TodoItemRoot
     {
         def apply(state: State, event: Event): State = (state, event) match
         {
-            case (None, Added (title))                 => Some (TodoItem (title))
-            case (Some (TodoItem (_)), Edited (title)) => Some (TodoItem (title))
-            case (Some (TodoItem (_)), Removed ())     => None
-            case _                                     => state
+            case (None, Added(title))               => TodoItem(title)
+            case (Some(TodoItem(_)), Edited(title)) => TodoItem(title)
+            case (Some(TodoItem(_)), Removed())     => None
+            case _                                  => state
         }
     }
 
@@ -66,8 +65,8 @@ object TodoItemRoot
     case class Edited(newTitle: String) extends Event
     case class Removed() extends Event
 
-    case class AlreadyExistsError() extends Exception
-    case class DoesNotExistError() extends Exception
-    case class EmptyTitleError() extends Exception
-    case class SameTitleError() extends Exception
+    case class AlreadyExists() extends Error
+    case class DoesNotExist() extends Error
+    case class EmptyTitle() extends Error
+    case class SameTitle() extends Error
 }
