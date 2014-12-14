@@ -1,22 +1,22 @@
-import scalasourcing.scalasourcing.Operations._
+import com.de.scalasourcing._
+import Operations._
 import org.scalatest.Matchers._
 
 import scala.reflect.Manifest
 import scala.util.Try
-import scalasourcing.scalasourcing._
 
 trait ScalaTestDDD
 {
-    def given[A, E](initialEvents: E*)(implicit ea: Application[A, E]): FlowGiven[A] =
+    def given[A, E](events: E*)(implicit ea: Applicator[A, E]): FlowGiven[A] =
     {
-        FlowGiven(initialEvents toAggregate())
+        FlowGiven(events toState)
     }
 
     case class FlowGiven[A]
     (state: Option[A])
     {
-        def ??[E, C](command: C)(implicit es: Sourcing[A, E, C]): FlowWhen[E] =
-            FlowWhen(state !!! command)
+        def ??[E, C](command: C)(implicit es: Sourcer[A, E, C]): FlowWhen[E] =
+            FlowWhen(state !! command)
     }
 
     case class FlowWhen[E]

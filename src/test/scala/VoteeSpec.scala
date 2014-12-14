@@ -1,4 +1,4 @@
-import todoes.contexts.voting.VoteeRoot._
+import com.de.todoes.contexts.voting.VoteeRoot._
 import org.scalatest._
 
 class VoteeSpec extends FunSuite with Matchers with ScalaTestDDD
