@@ -9,7 +9,7 @@ trait AggregateBDD[S]
 
     case class EmptyFlowGiven()
     {
-        def it_is(events: EventOf[S]*)(implicit ea: EventApplicationOf[S]): FlowGiven = FlowGiven(events toState)
+        def it_was(events: EventOf[S]*)(implicit ea: EventApplicationOf[S]): FlowGiven = FlowGiven(events toState)
         def nothing = FlowGiven(None)
     }
 
