@@ -1,8 +1,8 @@
-import com.de.todoes.voting._
 import com.de.todoes.voting.Upvote._
+import com.de.todoes.voting._
 import org.scalatest._
 
-class UpvoteSuite extends FunSuite with Matchers with ScalaTestDDD[Upvote]
+class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 {
     test("An upvote should be set")
     {

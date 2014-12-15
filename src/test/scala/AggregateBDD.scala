@@ -1,7 +1,7 @@
 import com.de.scalasourcing.AggregateRoot._
 import org.scalatest.Matchers._
 
-trait ScalaTestDDD[S]
+trait AggregateBDD[S]
 {
     def given: EmptyFlowGiven = EmptyFlowGiven()
     def given_nothing: FlowGiven = FlowGiven(None)

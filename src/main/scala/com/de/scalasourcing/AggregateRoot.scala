@@ -7,6 +7,7 @@ object AggregateRoot
     trait CommandOf[S]
     trait EventOf[S]
     trait ErrorOf[S]
+
     type EventsSeqOf[S] = Seq[EventOf[S]]
     type CommandResultOf[S] = Either[EventsSeqOf[S], ErrorOf[S]]
     type StateOf[S] = Option[S]
@@ -41,12 +42,10 @@ object AggregateRoot
     }
 }
 
-trait AggregateRoot[S]
+trait AggregateRoot[S] extends CommandApplicationOf[S] with EventApplicationOf[S]
 {
-    def create: State = None
-
-    implicit val ca: CommandApplication
-    implicit val ea: EventApplication
+    implicit val ca: CommandApplicationOf[S] = this
+    implicit val ea: EventApplicationOf[S] = this
 
     type Command = CommandOf[S]
     type Event = EventOf[S]
@@ -55,11 +54,8 @@ trait AggregateRoot[S]
     type CommandResult = CommandResultOf[S]
     type State = StateOf[S]
 
-    type CommandApplication = CommandApplicationOf[S]
-    type EventApplication = EventApplicationOf[S]
-
-    implicit def toRichEventsSeq(events: EventsSeq): RichEventsSeqOf[S] = events
-    implicit def toRichState(state: State): RichStateOf[S] = state
+    implicit def toRichEventsSeq(events: EventsSeq): RichEventsSeqOf[S] = new RichEventsSeqOf[S](events)
+    implicit def toRichState(state: State): RichStateOf[S] = new RichStateOf[S](state)
 
     implicit protected def ok(e: S): State = Some(e)
     implicit protected def ok(e: Event): CommandResult = Left(Seq(e))

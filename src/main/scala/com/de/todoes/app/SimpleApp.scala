@@ -1,11 +1,10 @@
 package com.de.todoes.app
 
-import com.de.todoes.editing._
 import com.de.todoes.editing.Todo._
 
 object SimpleApp extends App
 {
-    val todo = Todo.create
+    val todo = None
 
     val modified = todo !+ Add("Greet") !+ Edit("Greet the World.")
 

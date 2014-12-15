@@ -2,7 +2,7 @@ import com.de.todoes.editing.Todo._
 import com.de.todoes.editing._
 import org.scalatest._
 
-class TodoSuite extends FunSuite with Matchers with ScalaTestDDD[Todo]
+class TodoSuite extends FunSuite with Matchers with AggregateBDD[Todo]
 {
     test("A todo should be added")
     {
