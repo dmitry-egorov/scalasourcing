@@ -96,4 +96,12 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 ```
 
 ## Installation
+
 The library is not published yet. Sorry! I actually never done this before in jvm infrastructure and would appreciate any help!
+
+## Inspirations
+
+Inspired by:
+Akka event sourcing library [eventsourced](https://github.com/eligosource/eventsourced)
+This little beautiful [aggregate in Haskell](https://gist.github.com/Fristi/7327904)
+Another elegant [aggregate in Haskell](https://gist.github.com/philipnilsson/9200533)
