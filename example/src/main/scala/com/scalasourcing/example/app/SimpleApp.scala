@@ -9,7 +9,7 @@ object SimpleApp extends App
 
     todo = todo +! Add("Greet") +! Edit("Greet the World.")
 
-    println(s"Todo: ${todo}")
+    println(s"Todo: $todo")
 
     println("Hello world!")
 
