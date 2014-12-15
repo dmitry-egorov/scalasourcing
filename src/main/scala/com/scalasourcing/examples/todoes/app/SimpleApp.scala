@@ -1,6 +1,6 @@
-package com.de.todoes.app
+package com.scalasourcing.examples.todoes.app
 
-import com.de.todoes.editing.Todo._
+import com.scalasourcing.examples.todoes.editing.Todo._
 
 object SimpleApp extends App
 {

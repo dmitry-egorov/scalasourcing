@@ -1,4 +1,4 @@
-import com.de.scalasourcing.AggregateRoot._
+import com.scalasourcing.core.AggregateRoot._
 import org.scalatest.Matchers._
 
 trait AggregateBDD[S]
@@ -8,17 +8,17 @@ trait AggregateBDD[S]
 
     case class EmptyFlowGiven()
     {
-        def it_is(events: EventOf[S]*)(implicit a: EventApplicationOf[S]): FlowGiven = FlowGiven(events toState)
+        def it_is(events: EventOf[S]*)(implicit ea: EventApplicationOf[S]): FlowGiven = FlowGiven(events toState)
         def nothing = FlowGiven(None)
     }
 
     case class FlowGiven(state: StateOf[S])
     {
-        def and(events: EventOf[S]*)(implicit a: EventApplicationOf[S]): FlowGiven = FlowGiven(state + events)
+        def and(events: EventOf[S]*)(implicit ea: EventApplicationOf[S]): FlowGiven = FlowGiven(state + events)
         /**
          * When
          */
-        def when_I(command: CommandOf[S])(implicit s: CommandApplicationOf[S]): FlowWhen = FlowWhen(state ! command)
+        def when_I(command: CommandOf[S])(implicit ca: CommandApplicationOf[S]): FlowWhen = FlowWhen(state ! command)
     }
 
     case class FlowWhen(eventsTry: CommandResultOf[S])
