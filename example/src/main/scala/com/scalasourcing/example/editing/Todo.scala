@@ -14,10 +14,10 @@ object Todo extends AggregateRoot[Todo]
     case class Edited(newText: PlainText) extends Event
     case class Removed() extends Event
 
-    case class TodoAlreadyExists() extends Error
-    case class TodoDoesNotExist() extends Error
-    case class TextIsEmpty() extends Error
-    case class TextIsTheSame() extends Error
+    case class TodoExistedError() extends Error
+    case class TodoDidNotExistError() extends Error
+    case class NewTextIsEmptyError() extends Error
+    case class NewTextIsTheSameError() extends Error
 
     def apply(state: Option[Todo], event: Event): Option[Todo] = (state, event) match
     {
@@ -36,27 +36,27 @@ object Todo extends AggregateRoot[Todo]
     private def whenNone(command: Command): CommandResult = command match
     {
         case Add(text) => add(text)
-        case Edit(_)   => TodoDoesNotExist()
-        case Remove()  => TodoDoesNotExist()
+        case Edit(_)   => TodoDidNotExistError()
+        case Remove()  => TodoDidNotExistError()
     }
 
     private def whenSome(command: Command, text: PlainText): CommandResult = command match
     {
-        case Add(_)        => TodoAlreadyExists()
+        case Add(_)        => TodoExistedError()
         case Edit(newText) => edit(text, newText)
         case Remove()      => Removed()
     }
 
     private def add(text: PlainText): CommandResult =
     {
-        if (text.isEmpty) TextIsEmpty()
+        if (text.isEmpty) NewTextIsEmptyError()
         else Added(text)
     }
 
     private def edit(text: PlainText, newText: PlainText): CommandResult =
     {
-        if (newText.isEmpty) TextIsEmpty()
-        else if (newText == text) TextIsTheSame()
+        if (newText.isEmpty) NewTextIsEmptyError()
+        else if (newText == text) NewTextIsTheSameError()
         else Edited(newText)
     }
 }

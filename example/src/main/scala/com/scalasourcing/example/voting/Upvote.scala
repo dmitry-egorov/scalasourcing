@@ -12,8 +12,8 @@ object Upvote extends AggregateRoot[Upvote]
     case class $Set() extends Event
     case class Cancelled() extends Event
 
-    case class AlreadySet() extends Error
-    case class NotSet() extends Error
+    case class WasSetError() extends Error
+    case class WasNotSetError() extends Error
 
     def apply(state: Option[Upvote], event: Event): Option[Upvote] = (state, event) match
     {
@@ -31,12 +31,12 @@ object Upvote extends AggregateRoot[Upvote]
     private def whenNone(command: Command): CommandResult = command match
     {
         case Set()    => $Set()
-        case Cancel() => NotSet()
+        case Cancel() => WasNotSetError()
     }
 
     private def whenSome(command: Command): CommandResult = command match
     {
-        case Set()    => AlreadySet()
+        case Set()    => WasSetError()
         case Cancel() => Cancelled()
     }
 }
