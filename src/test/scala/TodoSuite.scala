@@ -1,5 +1,5 @@
 import com.de.todoes.editing.Todo._
-import com.de.todoes.editing._
+import com.de.todoes.editing.Todo
 import org.scalatest._
 
 class TodoSuite extends FunSuite with Matchers with AggregateBDD[Todo]

@@ -1,5 +1,5 @@
 import com.de.todoes.voting.Upvote._
-import com.de.todoes.voting._
+import com.de.todoes.voting.Upvote
 import org.scalatest._
 
 class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
