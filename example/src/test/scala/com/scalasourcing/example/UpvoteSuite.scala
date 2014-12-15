@@ -1,8 +1,8 @@
 package com.scalasourcing.example
 
-import com.scalasoucing.example.voting.Upvote
-import com.scalasoucing.example.voting.Upvote._
 import com.scalasourcing.bdd.AggregateBDD
+import com.scalasourcing.example.voting.Upvote
+import com.scalasourcing.example.voting.Upvote._
 import org.scalatest._
 
 class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]

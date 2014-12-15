@@ -1,4 +1,4 @@
-package com.scalasoucing.example.voting
+package com.scalasourcing.example.voting
 
 import com.scalasourcing.AggregateRoot
 
