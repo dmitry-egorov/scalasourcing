@@ -15,14 +15,14 @@ object Upvote extends AggregateRoot[Upvote]
     case class AlreadySet() extends Error
     case class NotSet() extends Error
 
-    def apply(state: State, event: Event): State = (state, event) match
+    def apply(state: Option[Upvote], event: Event): Option[Upvote] = (state, event) match
     {
         case (None, $Set())                => Upvote()
         case (Some(Upvote()), Cancelled()) => None
         case _                             => state
     }
 
-    def apply(state: State, command: Command): CommandResult = state match
+    def apply(state: Option[Upvote], command: Command): CommandResult = state match
     {
         case None           => whenNone(command)
         case Some(Upvote()) => whenSome(command)

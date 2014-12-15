@@ -19,7 +19,7 @@ object Todo extends AggregateRoot[Todo]
     case class TextIsEmpty() extends Error
     case class TextIsTheSame() extends Error
 
-    def apply(state: State, event: Event): State = (state, event) match
+    def apply(state: Option[Todo], event: Event): Option[Todo] = (state, event) match
     {
         case (None, Added(text))           => Todo(text)
         case (Some(Todo(_)), Edited(text)) => Todo(text)
@@ -27,7 +27,7 @@ object Todo extends AggregateRoot[Todo]
         case _                             => state
     }
 
-    def apply(state: State, command: Command): CommandResult = state match
+    def apply(state: Option[Todo], command: Command): CommandResult = state match
     {
         case None             => whenNone(command)
         case Some(Todo(text)) => whenSome(command, text)

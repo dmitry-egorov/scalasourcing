@@ -13,7 +13,7 @@ trait AggregateBDD[S]
         def nothing = FlowGiven(None)
     }
 
-    case class FlowGiven(state: StateOf[S])
+    case class FlowGiven(state: Option[S])
     {
         def and(events: EventOf[S]*)(implicit ea: EventApplicationOf[S]): FlowGiven = FlowGiven(state + events)
 
