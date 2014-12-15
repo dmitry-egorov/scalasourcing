@@ -1,4 +1,4 @@
-package com.scalasourcing.examples.todoes.editing
+package com.scalasourcing.example.editing
 
 case class PlainText(value: String)
 {

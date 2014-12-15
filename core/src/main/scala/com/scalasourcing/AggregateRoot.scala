@@ -1,6 +1,6 @@
-package com.scalasourcing.core
+package com.scalasourcing
 
-import com.scalasourcing.core.AggregateRoot._
+import com.scalasourcing.AggregateRoot._
 
 trait AggregateRoot[S] extends CommandApplicationOf[S] with EventApplicationOf[S]
 {

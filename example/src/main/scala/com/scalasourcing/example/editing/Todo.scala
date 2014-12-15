@@ -1,6 +1,6 @@
-package com.scalasourcing.examples.todoes.editing
+package com.scalasourcing.example.editing
 
-import com.scalasourcing.core.AggregateRoot
+import com.scalasourcing.AggregateRoot
 
 case class Todo(text: PlainText)
 

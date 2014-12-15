@@ -1,5 +1,6 @@
-import com.scalasourcing.core.AggregateRoot._
-import org.scalatest.Matchers._
+package com.scalasourcing.bdd
+
+import com.scalasourcing.AggregateRoot._
 
 trait AggregateBDD[S]
 {
@@ -26,14 +27,19 @@ trait AggregateBDD[S]
         /**
          * Then ok
          */
-        def then_it_is(expected: EventOf[S]*) = eventsTry.left.get should equal(expected)
+        def then_it_is(expected: EventOf[S]*) =
+        {
+            val events = eventsTry.left.get
+            assert(events == expected, s"Invalid events produced. Expected: $expected. Actual: $events")
+        }
 
         /**
          * Then error
          */
         def then_error(expected: ErrorOf[S]): Unit =
         {
-            eventsTry.right.get should equal(expected)
+            val error = eventsTry.right.get
+            assert(error == expected, s"Invalid error produced. Expected: $expected. Actual: $error")
         }
     }
 }

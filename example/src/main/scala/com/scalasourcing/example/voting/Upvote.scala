@@ -1,6 +1,6 @@
-package com.scalasourcing.examples.todoes.voting
+package com.scalasoucing.example.voting
 
-import com.scalasourcing.core.AggregateRoot
+import com.scalasourcing.AggregateRoot
 
 case class Upvote()
 

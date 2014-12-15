@@ -1,15 +1,17 @@
-name := "todo-es"
- 
-version := "0.1"
- 
-scalaVersion := "2.11.4"
 
-scalacOptions ++= Seq("-feature", "-deprecation", "-language:postfixOps", "-language:implicitConversions")
 
-libraryDependencies ++= Seq(
-    "com.firebase" % "firebase-client-jvm" % "2.0.2",
-    "io.reactivex" %% "rxscala" % "0.22.0",
-    "org.json4s" %% "json4s-jackson" % "3.2.11",
-    "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
-    "com.github.nscala-time" %% "nscala-time" % "1.6.0"
-)
+import Dependencies._
+
+lazy val core = (project in file("core")).
+                     settings(Commons.settings: _*).
+                     settings(libraryDependencies ++= coreDependencies)
+
+lazy val bdd = (project in file("bdd")).
+                       settings(Commons.settings: _*).
+                       settings(libraryDependencies ++= bddDependencies).
+                       dependsOn(core)
+
+lazy val example = (project in file("example")).
+                  settings(Commons.settings: _*).
+                  settings(libraryDependencies ++= exampleDependencies).
+                  dependsOn(core, bdd)
