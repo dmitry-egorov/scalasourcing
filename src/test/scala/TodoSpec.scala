@@ -1,8 +1,8 @@
-import com.de.todoes.editing.TodoItemRoot._
+import com.de.todoes.editing._
 import org.scalatest._
 
 
-class TodoItemSpec extends FunSuite with Matchers with ScalaTestDDD
+class TodoSpec extends FunSuite with Matchers with ScalaTestDDD[Todo] with TodoRoot
 {
     test("A new todo item should be added")
     {

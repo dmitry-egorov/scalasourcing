@@ -1,44 +1,42 @@
 package com.de.todoes.editing
 
-import com.de.scalasourcing.EventSourcing._
+import com.de.scalasourcing.AggregateRoot
 
-object TodoItemRoot
+case class Todo(title: String)
+
+object Todo extends TodoRoot
+
+trait TodoRoot extends AggregateRoot[Todo]
 {
-    case class TodoItem(title: String)
-    type State = Option[TodoItem]
-    type Command = CommandOf[TodoItem]
-    type Event = EventOf[TodoItem]
-    type Error = ErrorOf[TodoItem]
-
-    implicit object Sourcer extends Sourcer[TodoItem]
+    implicit object sourcer extends Sourcer
     {
-        def apply(state: State, command: Command): Sourcing[TodoItem] = state match
+        def apply(state: State, command: Command): Sourcing = state match
         {
-            case None                  => applyToNone(command)
-            case Some(TodoItem(title)) => applyToSome(command, title)
+            case None              => applyToNone(command)
+            case Some(Todo(title)) => applyToSome(command, title)
         }
 
-        def applyToNone(command: Command): Sourcing[TodoItem] = command match
+        def applyToNone(command: Command): Sourcing = command match
         {
             case Add(title) => addItem(title)
             case Edit(_)    => DoesNotExist()
             case Remove()   => DoesNotExist()
         }
 
-        def applyToSome(command: Command, title: String): Sourcing[TodoItem] = command match
+        def applyToSome(command: Command, title: String): Sourcing = command match
         {
             case Add(_)         => AlreadyExists()
             case Edit(newTitle) => editExistingItem(title, newTitle)
             case Remove()       => Removed()
         }
 
-        private def addItem(title: String): Sourcing[TodoItem] =
+        private def addItem(title: String): Sourcing =
         {
             if (title.trim.isEmpty) EmptyTitle()
             else Added(title)
         }
 
-        private def editExistingItem(title: String, newTitle: String): Sourcing[TodoItem] =
+        private def editExistingItem(title: String, newTitle: String): Sourcing =
         {
             if (newTitle.trim.isEmpty) EmptyTitle()
             else if (newTitle == title) SameTitle()
@@ -46,14 +44,14 @@ object TodoItemRoot
         }
     }
 
-    implicit object Applicator extends Applicator[TodoItem]
+    implicit object applicator extends Applicator
     {
         def apply(state: State, event: Event): State = (state, event) match
         {
-            case (None, Added(title))               => TodoItem(title)
-            case (Some(TodoItem(_)), Edited(title)) => TodoItem(title)
-            case (Some(TodoItem(_)), Removed())     => None
-            case _                                  => state
+            case (None, Added(title))           => Todo(title)
+            case (Some(Todo(_)), Edited(title)) => Todo(title)
+            case (Some(Todo(_)), Removed())     => None
+            case _                              => state
         }
     }
 
@@ -70,3 +68,5 @@ object TodoItemRoot
     case class EmptyTitle() extends Error
     case class SameTitle() extends Error
 }
+
+
