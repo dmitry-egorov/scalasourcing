@@ -1,20 +1,21 @@
 package com.scalasourcing.example.app
 
+import com.scalasourcing.example.editing.Todo
 import com.scalasourcing.example.editing.Todo._
 
 object SimpleApp extends App
 {
-    val todo = None
+    var todo = Option.empty[Todo]
 
-    val modified = todo +! Add("Greet") +! Edit("Greet the World.")
+    todo = todo +! Add("Greet") +! Edit("Greet the World.")
 
-    println(s"Todo: ${modified.get}")
+    println(s"Todo: ${todo}")
 
     println("Hello world!")
 
-    val removed = modified +! Remove()
+    todo = todo +! Remove()
 
-    println(s"Todo: $removed")
+    println(s"Todo: $todo")
 
     println("Done!")
 }
