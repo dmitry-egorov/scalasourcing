@@ -10,8 +10,6 @@ It's just started and doesn't allow much for now. But I want to grow it into the
 Here's how an aggregate root is defined:
 
 ```scala
-package com.scalasourcing.example.voting
-
 import com.scalasourcing.AggregateRoot
 
 case class Upvote()
@@ -57,8 +55,6 @@ object Upvote extends AggregateRoot[Upvote]
 Here's a suit of tests for that root:
 
 ```scala
-package com.scalasourcing.example
-
 import com.scalasourcing.bdd.AggregateBDD
 import com.scalasourcing.example.voting.Upvote
 import com.scalasourcing.example.voting.Upvote._
