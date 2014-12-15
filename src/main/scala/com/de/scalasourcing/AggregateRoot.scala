@@ -10,6 +10,7 @@ trait AggregateRoot[S]
     trait Event
     trait Command
     trait Error
+    type Events = Seq[Event]
     type Sourcing = Either[Events, Error]
     type State = Option[S]
 
@@ -57,7 +58,7 @@ trait AggregateRoot[S]
         }
     }
 
-    implicit class Events(val events: Seq[Event]) extends Seq[Event]
+    implicit class EventsEx(val events: Seq[Event])
     {
         def toState()(implicit a: Applicator): State =
         {
@@ -68,13 +69,9 @@ trait AggregateRoot[S]
         {
             events.toState ! command
         }
-
-        def length: Int = events.length
-        def apply(idx: Int): Event = events.apply(idx)
-        def iterator: Iterator[Event] = events.iterator
     }
 
     implicit protected def ok(e: S): State = Some(e)
-    implicit protected def ok(e: Event): Sourcing = Left(Events(Seq(e)))
+    implicit protected def ok(e: Event): Sourcing = Left(Seq(e))
     implicit protected def error(e: Error): Sourcing = Right(e)
 }
