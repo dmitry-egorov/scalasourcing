@@ -102,6 +102,9 @@ The library is not published yet. Sorry! I actually never done this before in jv
 ## Inspirations
 
 Inspired by:
-Akka event sourcing library [eventsourced](https://github.com/eligosource/eventsourced)
-This little beautiful [aggregate in Haskell](https://gist.github.com/Fristi/7327904)
-Another elegant [aggregate in Haskell](https://gist.github.com/philipnilsson/9200533)
+
+Akka event sourcing library [eventsourced](https://github.com/eligosource/eventsourced).
+
+This little beautiful [aggregate in Haskell](https://gist.github.com/Fristi/7327904).
+
+Another elegant [aggregate in Haskell](https://gist.github.com/philipnilsson/9200533).
