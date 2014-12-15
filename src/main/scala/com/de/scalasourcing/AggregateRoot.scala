@@ -1,77 +1,67 @@
 package com.de.scalasourcing
 
+import com.de.scalasourcing.AggregateRoot._
+
+object AggregateRoot
+{
+    trait CommandOf[S]
+    trait EventOf[S]
+    trait ErrorOf[S]
+    type EventsSeqOf[S] = Seq[EventOf[S]]
+    type CommandResultOf[S] = Either[EventsSeqOf[S], ErrorOf[S]]
+    type StateOf[S] = Option[S]
+
+    trait CommandApplicationOf[S]
+    {
+        def apply(agg: StateOf[S], command: CommandOf[S]): CommandResultOf[S]
+    }
+
+    trait EventApplicationOf[S]
+    {
+        def apply(state: StateOf[S], event: EventOf[S]): StateOf[S]
+        def apply(state: StateOf[S], events: EventsSeqOf[S]): StateOf[S] = events.foldLeft(state)((a, e) => apply(a, e))
+        def apply(events: EventsSeqOf[S]): StateOf[S] = events.foldLeft(Option.empty[S])((a, e) => apply(a, e))
+    }
+
+    implicit class RichEventsSeqOf[S](val events: EventsSeqOf[S]) extends AnyVal
+    {
+        def toState()(implicit a: EventApplicationOf[S]): StateOf[S] = a(events)
+        def !(events: EventsSeqOf[S], command: CommandOf[S])
+             (implicit s: CommandApplicationOf[S], a: EventApplicationOf[S]): CommandResultOf[S] =
+            events.toState ! command
+    }
+
+    implicit class RichStateOf[S](val state: StateOf[S]) extends AnyVal
+    {
+        def +(event: EventOf[S])(implicit a: EventApplicationOf[S]): StateOf[S] = a(state, event)
+        def +(events: EventsSeqOf[S])(implicit a: EventApplicationOf[S]): StateOf[S] = a(state, events)
+        def !(command: CommandOf[S])(implicit s: CommandApplicationOf[S]): CommandResultOf[S] = s(state, command)
+        def !+(command: CommandOf[S])(implicit s: CommandApplicationOf[S], a: EventApplicationOf[S]): StateOf[S] =
+            state + (state ! command).left.get
+    }
+}
+
 trait AggregateRoot[S]
 {
     def create: State = None
 
-    implicit val applicator: Applicator
-    implicit val sourcer: Sourcer
+    implicit val ca: CommandApplication
+    implicit val ea: EventApplication
 
-    trait Event
-    trait Command
-    trait Error
-    type Events = Seq[Event]
-    type Sourcing = Either[Events, Error]
-    type State = Option[S]
+    type Command = CommandOf[S]
+    type Event = EventOf[S]
+    type Error = ErrorOf[S]
+    type EventsSeq = EventsSeqOf[S]
+    type CommandResult = CommandResultOf[S]
+    type State = StateOf[S]
 
-    trait Applicator
-    {
-        def apply(state: State, event: Event): State
+    type CommandApplication = CommandApplicationOf[S]
+    type EventApplication = EventApplicationOf[S]
 
-        def apply(state: State, events: Events): State =
-            events.foldLeft(state)((a, e) => apply(a, e))
-
-        def apply(events: Events): State =
-            events.foldLeft(State.empty)((a, e) => apply(a, e))
-    }
-
-    trait Sourcer
-    {
-        def apply(agg: State, command: Command): Sourcing
-    }
-
-    object State
-    {
-        def empty: State = Option.empty[S]
-    }
-    
-    implicit class StateEx(val state: Option[S])
-    {
-        def +(event: Event)(implicit a: Applicator): State =
-        {
-            a(state, event)
-        }
-
-        def +(events: Events)(implicit a: Applicator): State =
-        {
-            a(state, events)
-        }
-
-        def !(command: Command)(implicit s: Sourcer): Sourcing =
-        {
-            s(state, command)
-        }
-
-        def !+(command: Command): State =
-        {
-            state + (state ! command).left.get
-        }
-    }
-
-    implicit class EventsEx(val events: Seq[Event])
-    {
-        def toState()(implicit a: Applicator): State =
-        {
-            a(events)
-        }
-
-        def !(events: Events, command: Command): Sourcing =
-        {
-            events.toState ! command
-        }
-    }
+    implicit def toRichEventsSeq(events: EventsSeq): RichEventsSeqOf[S] = events
+    implicit def toRichState(state: State): RichStateOf[S] = state
 
     implicit protected def ok(e: S): State = Some(e)
-    implicit protected def ok(e: Event): Sourcing = Left(Seq(e))
-    implicit protected def error(e: Error): Sourcing = Right(e)
+    implicit protected def ok(e: Event): CommandResult = Left(Seq(e))
+    implicit protected def error(e: Error): CommandResult = Right(e)
 }

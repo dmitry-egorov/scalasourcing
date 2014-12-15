@@ -1,36 +1,37 @@
-import com.de.scalasourcing.AggregateRoot
+import com.de.scalasourcing.AggregateRoot._
 import org.scalatest.Matchers._
 
-trait ScalaTestDDD[S] extends AggregateRoot[S]
+trait ScalaTestDDD[S]
 {
-    def given(events: Event*): FlowGiven =
+    def given: EmptyFlowGiven = EmptyFlowGiven()
+    def given_nothing: FlowGiven = FlowGiven(None)
+
+    case class EmptyFlowGiven()
     {
-        FlowGiven(events toState)
+        def it_is(events: EventOf[S]*)(implicit a: EventApplicationOf[S]): FlowGiven = FlowGiven(events toState)
+        def nothing = FlowGiven(None)
     }
 
-    case class FlowGiven
-    (state: State)
+    case class FlowGiven(state: StateOf[S])
     {
+        def and(events: EventOf[S]*)(implicit a: EventApplicationOf[S]): FlowGiven = FlowGiven(state + events)
         /**
          * When
          */
-        def ??(command: Command): FlowWhen =
-        {
-            FlowWhen(state ! command)
-        }
+        def when_I(command: CommandOf[S])(implicit s: CommandApplicationOf[S]): FlowWhen = FlowWhen(state ! command)
     }
 
-    case class FlowWhen(eventsTry: Sourcing)
+    case class FlowWhen(eventsTry: CommandResultOf[S])
     {
         /**
          * Then ok
          */
-        def -->(expected: Event*) = eventsTry.left.get should equal(expected)
+        def then_it_is(expected: EventOf[S]*) = eventsTry.left.get should equal(expected)
 
         /**
          * Then error
          */
-        def !!!(expected: Error): Unit =
+        def then_error(expected: ErrorOf[S]): Unit =
         {
             eventsTry.right.get should equal(expected)
         }

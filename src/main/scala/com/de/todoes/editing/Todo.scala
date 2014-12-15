@@ -4,39 +4,37 @@ import com.de.scalasourcing.AggregateRoot
 
 case class Todo(title: String)
 
-object Todo extends TodoRoot
-
-trait TodoRoot extends AggregateRoot[Todo]
+object Todo extends AggregateRoot[Todo]
 {
-    implicit object sourcer extends Sourcer
+    implicit object ca extends CommandApplication
     {
-        def apply(state: State, command: Command): Sourcing = state match
+        def apply(state: State, command: Command): CommandResult = state match
         {
-            case None              => applyToNone(command)
-            case Some(Todo(title)) => applyToSome(command, title)
+            case None              => whenNone(command)
+            case Some(Todo(title)) => whenSome(command, title)
         }
 
-        def applyToNone(command: Command): Sourcing = command match
+        def whenNone(command: Command): CommandResult = command match
         {
-            case Add(title) => addItem(title)
+            case Add(title) => add(title)
             case Edit(_)    => DoesNotExist()
             case Remove()   => DoesNotExist()
         }
 
-        def applyToSome(command: Command, title: String): Sourcing = command match
+        def whenSome(command: Command, title: String): CommandResult = command match
         {
             case Add(_)         => AlreadyExists()
-            case Edit(newTitle) => editExistingItem(title, newTitle)
+            case Edit(newTitle) => edit(title, newTitle)
             case Remove()       => Removed()
         }
 
-        private def addItem(title: String): Sourcing =
+        private def add(title: String): CommandResult =
         {
             if (title.trim.isEmpty) EmptyTitle()
             else Added(title)
         }
 
-        private def editExistingItem(title: String, newTitle: String): Sourcing =
+        private def edit(title: String, newTitle: String): CommandResult =
         {
             if (newTitle.trim.isEmpty) EmptyTitle()
             else if (newTitle == title) SameTitle()
@@ -44,7 +42,7 @@ trait TodoRoot extends AggregateRoot[Todo]
         }
     }
 
-    implicit object applicator extends Applicator
+    implicit object ea extends EventApplication
     {
         def apply(state: State, event: Event): State = (state, event) match
         {
@@ -68,5 +66,3 @@ trait TodoRoot extends AggregateRoot[Todo]
     case class EmptyTitle() extends Error
     case class SameTitle() extends Error
 }
-
-

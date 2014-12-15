@@ -1,6 +1,6 @@
 package com.de.todoes.app
 
-import com.de.todoes.editing.Todo
+import com.de.todoes.editing._
 import com.de.todoes.editing.Todo._
 
 object SimpleApp extends App
@@ -16,4 +16,6 @@ object SimpleApp extends App
     val removed = modified !+ Remove()
 
     println(s"Todo: $removed")
+
+    println("Done!")
 }
