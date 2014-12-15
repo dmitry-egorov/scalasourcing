@@ -69,7 +69,7 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 
     test("Set upvote should not be set again")
     {
-        given it_was $Set() when_I Set() then_error AlreadySet()
+        given it_was $Set() when_I Set() then WasSetError()
     }
 
     test("Set upvote should be cancelled")
@@ -79,7 +79,7 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 
     test("Unset upvote should not be cancelled")
     {
-        given_nothing when_I Cancel() then_error NotSet()
+        given_nothing when_I Cancel() then WasNotSetError()
     }
 
     test("An upvote should be set when it was set and then cancelled")
@@ -89,9 +89,10 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 
     test("An upvote should not be cancelled when it was set and then cancelled")
     {
-        given it_was $Set() and Cancelled() when_I Cancel() then_error NotSet()
+        given it_was $Set() and Cancelled() when_I Cancel() then WasNotSetError()
     }
 }
+
 ```
 
 ## Installation
