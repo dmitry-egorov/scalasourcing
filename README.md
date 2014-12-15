@@ -2,7 +2,7 @@
 
 This is a library for writing Domain Driven and Event Sourced application in Scala.
 
-It's just started and doesn't allow much for now. But I want to grow it into the real deal and use it on my own project (which is not open source for now).
+It's just started and doesn't allow much for now. But I want to grow it into the real deal and use it on my own project (which is not open source yet).
 
 
 ## Highlights
