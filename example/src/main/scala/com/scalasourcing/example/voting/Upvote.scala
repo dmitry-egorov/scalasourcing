@@ -25,21 +25,22 @@ object Upvote extends AggregateFactory[Upvote]
 
         def apply(command: Command): CommandResult = command match
         {
-            case Cast()    => WasAlreadyCastError()
+            case Cast()   => WasAlreadyCastError()
             case Cancel() => Cancelled()
         }
     }
+
     case class NotCastUpvote() extends Upvote
     {
         def apply(event: Event): Upvote = event match
         {
             case $Cast() => CastUpvote()
-            case _      => this
+            case _       => this
         }
 
         def apply(command: Command): CommandResult = command match
         {
-            case Cast()    => $Cast()
+            case Cast()   => $Cast()
             case Cancel() => WasNotCastError()
         }
     }
