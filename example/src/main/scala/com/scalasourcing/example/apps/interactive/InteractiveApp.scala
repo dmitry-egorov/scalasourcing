@@ -1,6 +1,6 @@
 package com.scalasourcing.example.apps.interactive
 
-import com.scalasourcing.AggregateFactory._
+import com.scalasourcing.AggregateRootCompanion._
 import com.scalasourcing._
 import com.scalasourcing.example.editing.Todo._
 import com.scalasourcing.example.voting.Upvote._
@@ -55,7 +55,7 @@ object InteractiveApp extends App
         }
     }
 
-    def command[AR <: AggregateRoot[AR]](id: String, command: CommandOf[AR])(implicit f: FactoryOf[AR], m: Manifest[AR]): Either[String, String] =
+    def command[AR <: AggregateRoot[AR] : F : Manifest](id: String, command: CommandOf[AR]): Either[String, String] =
     {
         executor.execute(id, command) match
         {

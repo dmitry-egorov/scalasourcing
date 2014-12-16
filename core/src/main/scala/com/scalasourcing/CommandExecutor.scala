@@ -1,10 +1,10 @@
 package com.scalasourcing
 
-import com.scalasourcing.AggregateFactory._
+import com.scalasourcing.AggregateRootCompanion._
 
 class CommandExecutor(storage: EventStorage)
 {
-    def execute[AR <: AggregateRoot[AR]](id: AggregateId, command: CommandOf[AR])(implicit f: FactoryOf[AR], m: Manifest[AR]): CommandResultOf[AR] =
+    def execute[AR <: AggregateRoot[AR] : F : Manifest](id: AggregateId, command: CommandOf[AR]): CommandResultOf[AR] =
     {
         val events = storage.get[AR](id)
 

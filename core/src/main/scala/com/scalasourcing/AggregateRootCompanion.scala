@@ -1,8 +1,8 @@
 package com.scalasourcing
 
-import com.scalasourcing.AggregateFactory._
+import com.scalasourcing.AggregateRootCompanion._
 
-trait AggregateFactory[AR <: AggregateRoot[AR]] extends FactoryOf[AR]
+trait AggregateRootCompanion[AR <: AggregateRoot[AR]] extends FactoryOf[AR]
 {
     implicit val factory: FactoryOf[AR] = this
 
@@ -18,7 +18,7 @@ trait AggregateFactory[AR <: AggregateRoot[AR]] extends FactoryOf[AR]
     implicit protected def error(error: Error): CommandResult = Right(error)
 }
 
-object AggregateFactory
+object AggregateRootCompanion
 {
     trait CommandOf[AR]
     trait EventOf[AR]
@@ -26,16 +26,17 @@ object AggregateFactory
 
     type EventsSeqOf[AR] = Seq[EventOf[AR]]
     type CommandResultOf[AR] = Either[EventsSeqOf[AR], ErrorOf[AR]]
+    type F[AR] = FactoryOf[AR]
 
     trait FactoryOf[AR]
     {
-        def create: AR
+        def seed: AR
     }
 
     implicit class RichEventsSeqOf[AR <: AggregateRoot[AR]](val events: EventsSeqOf[AR]) extends AnyVal
     {
-        def mkRoot()(implicit f: FactoryOf[AR]): AR = events.foldLeft(f.create)((ar, e) => ar(e))
+        def mkRoot()(implicit f: F[AR]): AR = events.foldLeft(f.seed)((ar, e) => ar(e))
 
-        def !(command: CommandOf[AR])(implicit f: FactoryOf[AR]): CommandResultOf[AR] = mkRoot ! command
+        def !(command: CommandOf[AR])(implicit f: F[AR]): CommandResultOf[AR] = mkRoot ! command
     }
 }

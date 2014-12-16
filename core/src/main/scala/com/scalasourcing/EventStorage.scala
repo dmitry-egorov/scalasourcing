@@ -1,23 +1,23 @@
 package com.scalasourcing
 
-import com.scalasourcing.AggregateFactory.EventsSeqOf
+import com.scalasourcing.AggregateRootCompanion.EventsSeqOf
 
 class EventStorage
 {
     private var aggregatesEventsMap: Map[String, Map[AggregateId, Seq[AnyRef]]] = Map.empty
 
-    def get[AR](id: AggregateId)(implicit m: Manifest[AR]): EventsSeqOf[AR] =
+    def get[AR: Manifest](id: AggregateId): EventsSeqOf[AR] =
     {
-        val clazz = getClassName(m)
+        val clazz = getClassName
         val eventsMap = getEventsMap(clazz)
         val events = getEventsSeq(id, eventsMap)
 
         events.asInstanceOf[EventsSeqOf[AR]]
     }
 
-    def persist[AR](id: AggregateId, events: EventsSeqOf[AR])(implicit m: Manifest[AR]): Unit =
+    def persist[AR : Manifest](id: AggregateId, events: EventsSeqOf[AR]): Unit =
     {
-        val clazz = getClassName(m)
+        val clazz = getClassName
         val eventsMap = getEventsMap(clazz)
         val eventsSeq = getEventsSeq(id, eventsMap)
         
@@ -26,9 +26,9 @@ class EventStorage
         aggregatesEventsMap = aggregatesEventsMap.updated(clazz, newEventsMap)
     }
 
-    private def getClassName[T](m: Manifest[T]): String =
+    private def getClassName[T: Manifest]: String =
     {
-        m.getClass.getName
+        implicitly[Manifest[T]].getClass.getName
     }
 
     private def getEventsMap(clazz: String): Map[AggregateId, Seq[AnyRef]] =

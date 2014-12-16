@@ -14,7 +14,7 @@ import com.scalasourcing._
 
 sealed trait Upvote extends AggregateRoot[Upvote]
 
-object Upvote extends AggregateFactory[Upvote]
+object Upvote extends AggregateRootCompanion[Upvote]
 {
     case class Cast() extends Command
     case class Cancel() extends Command
@@ -27,13 +27,13 @@ object Upvote extends AggregateFactory[Upvote]
 
     case class CastedUpvote() extends Upvote
     {
-        def apply(event: Event): Upvote = event match
+        def apply(event: Event) = event match
         {
             case Cancelled() => NotCastedUpvote()
             case _           => this
         }
 
-        def apply(command: Command): CommandResult = command match
+        def apply(command: Command) = command match
         {
             case Cast()   => WasAlreadyCastedError()
             case Cancel() => Cancelled()
@@ -42,29 +42,29 @@ object Upvote extends AggregateFactory[Upvote]
 
     case class NotCastedUpvote() extends Upvote
     {
-        def apply(event: Event): Upvote = event match
+        def apply(event: Event) = event match
         {
             case Casted() => CastedUpvote()
             case _       => this
         }
 
-        def apply(command: Command): CommandResult = command match
+        def apply(command: Command) = command match
         {
             case Cast()   => Casted()
             case Cancel() => WasNotCastedError()
         }
     }
 
-    def create: Upvote = NotCastedUpvote()
+    def seed = NotCastedUpvote()
 }
 ```
 
 Here's a suit of tests for that root:
 
 ```scala
+import com.scalasourcing.bdd.AggregateBDD
 import com.scalasourcing.example.voting.Upvote
 import com.scalasourcing.example.voting.Upvote._
-import com.scalasourcing.bdd.AggregateBDD
 import org.scalatest._
 
 class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]

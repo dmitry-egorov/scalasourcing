@@ -4,7 +4,7 @@ import com.scalasourcing.example.editing.Todo._
 
 object SimpleApp extends App
 {
-    var todo = factory.create +! Add("Greet") +! Edit("Greet the World.")
+    var todo = factory.seed +! Add("Greet") +! Edit("Greet the World.")
 
     println(s"Todo: $todo")
 

@@ -1,17 +1,17 @@
 package com.scalasourcing.bdd
 
-import com.scalasourcing.AggregateFactory._
+import com.scalasourcing.AggregateRootCompanion._
 import com.scalasourcing.AggregateRoot
 
 trait AggregateBDD[AR <: AggregateRoot[AR]]
 {
-    def given: EmptyFlowGiven = EmptyFlowGiven()
-    def given_nothing(implicit f: FactoryOf[AR]): FlowGiven = FlowGiven(f.create)
+    def given(implicit f: F[AR]): EmptyFlowGiven = EmptyFlowGiven()
+    def given_nothing(implicit f: F[AR]): FlowGiven = FlowGiven(f.seed)
 
-    case class EmptyFlowGiven()
+    case class EmptyFlowGiven()(implicit f: FactoryOf[AR])
     {
-        def it_was(events: EventOf[AR]*)(implicit f: FactoryOf[AR]): FlowGiven = FlowGiven(events mkRoot)
-        def nothing(implicit f: FactoryOf[AR]) = FlowGiven(f.create)
+        def it_was(events: EventOf[AR]*): FlowGiven = FlowGiven(events mkRoot)
+        def nothing = FlowGiven(f.seed)
     }
 
     case class FlowGiven(state: AR)
