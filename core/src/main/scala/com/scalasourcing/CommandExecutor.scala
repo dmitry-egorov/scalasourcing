@@ -4,7 +4,7 @@ import com.scalasourcing.AggregateRootCompanion._
 
 class CommandExecutor(storage: EventStorage)
 {
-    def execute[AR <: AggregateRoot[AR] : F : Manifest](id: AggregateId, command: CommandOf[AR]): CommandResultOf[AR] =
+    def execute[AR <: AggregateRoot[AR] : Factory : Manifest](id: AggregateId, command: CommandOf[AR]): CommandResultOf[AR] =
     {
         val events = storage.get[AR](id)
 

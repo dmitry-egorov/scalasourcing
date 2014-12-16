@@ -5,10 +5,10 @@ import com.scalasourcing.AggregateRoot
 
 trait AggregateBDD[AR <: AggregateRoot[AR]]
 {
-    def given(implicit f: F[AR]): EmptyFlowGiven = EmptyFlowGiven()
-    def given_nothing(implicit f: F[AR]): FlowGiven = FlowGiven(f.seed)
+    def given(implicit f: Factory[AR]): EmptyFlowGiven = EmptyFlowGiven()
+    def given_nothing(implicit f: Factory[AR]): FlowGiven = FlowGiven(f.seed)
 
-    case class EmptyFlowGiven()(implicit f: FactoryOf[AR])
+    case class EmptyFlowGiven()(implicit f: Factory[AR])
     {
         def it_was(events: EventOf[AR]*): FlowGiven = FlowGiven(events mkRoot)
         def nothing = FlowGiven(f.seed)
