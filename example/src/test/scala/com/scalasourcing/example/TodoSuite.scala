@@ -1,8 +1,8 @@
 package com.scalasourcing.example
 
-import com.scalasourcing.bdd.AggregateBDD
 import com.scalasourcing.example.editing.Todo
 import com.scalasourcing.example.editing.Todo._
+import com.scalasourcing.bdd.AggregateBDD
 import org.scalatest._
 
 class TodoSuite extends FunSuite with Matchers with AggregateBDD[Todo]

@@ -55,7 +55,7 @@ object InteractiveApp extends App
         }
     }
 
-    def command[S <: AggregateRoot[S]](id: String, command: CommandOf[S])(implicit f: FactoryOf[S], m: Manifest[S]): Either[String, String] =
+    def command[AR <: AggregateRoot[AR]](id: String, command: CommandOf[AR])(implicit f: FactoryOf[AR], m: Manifest[AR]): Either[String, String] =
     {
         executor.execute(id, command) match
         {

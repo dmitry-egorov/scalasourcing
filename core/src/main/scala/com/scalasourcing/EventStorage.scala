@@ -6,16 +6,16 @@ class EventStorage
 {
     private var aggregatesEventsMap: Map[String, Map[AggregateId, Seq[AnyRef]]] = Map.empty
 
-    def get[S](id: AggregateId)(implicit m: Manifest[S]): EventsSeqOf[S] =
+    def get[AR](id: AggregateId)(implicit m: Manifest[AR]): EventsSeqOf[AR] =
     {
         val clazz = getClassName(m)
         val eventsMap = getEventsMap(clazz)
         val events = getEventsSeq(id, eventsMap)
 
-        events.asInstanceOf[EventsSeqOf[S]]
+        events.asInstanceOf[EventsSeqOf[AR]]
     }
 
-    def persist[S](id: AggregateId, events: EventsSeqOf[S])(implicit m: Manifest[S]): Unit =
+    def persist[AR](id: AggregateId, events: EventsSeqOf[AR])(implicit m: Manifest[AR]): Unit =
     {
         val clazz = getClassName(m)
         val eventsMap = getEventsMap(clazz)
@@ -26,17 +26,17 @@ class EventStorage
         aggregatesEventsMap = aggregatesEventsMap.updated(clazz, newEventsMap)
     }
 
-    private def getClassName[S](m: Manifest[S]): String =
+    private def getClassName[T](m: Manifest[T]): String =
     {
         m.getClass.getName
     }
 
-    private def getEventsMap[S](clazz: String): Map[AggregateId, Seq[AnyRef]] =
+    private def getEventsMap(clazz: String): Map[AggregateId, Seq[AnyRef]] =
     {
         aggregatesEventsMap.getOrElse(clazz, Map.empty)
     }
 
-    private def getEventsSeq[S](id: AggregateId, eventsMap: Map[AggregateId, Seq[AnyRef]]): Seq[AnyRef] =
+    private def getEventsSeq(id: AggregateId, eventsMap: Map[AggregateId, Seq[AnyRef]]): Seq[AnyRef] =
     {
         eventsMap.getOrElse(id, Seq.empty)
     }

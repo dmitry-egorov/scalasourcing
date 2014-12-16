@@ -2,17 +2,17 @@ package com.scalasourcing
 
 import com.scalasourcing.AggregateFactory._
 
-trait AggregateFactory[S <: AggregateRoot[S]] extends FactoryOf[S]
+trait AggregateFactory[AR <: AggregateRoot[AR]] extends FactoryOf[AR]
 {
-    implicit val f: FactoryOf[S] = this
+    implicit val factory: FactoryOf[AR] = this
 
-    type Command = CommandOf[S]
-    type Event = EventOf[S]
-    type Error = ErrorOf[S]
-    type EventsSeq = EventsSeqOf[S]
-    type CommandResult = CommandResultOf[S]
+    type Command = CommandOf[AR]
+    type Event = EventOf[AR]
+    type Error = ErrorOf[AR]
+    type EventsSeq = EventsSeqOf[AR]
+    type CommandResult = CommandResultOf[AR]
 
-    implicit def toRichEventsSeq(events: EventsSeq): RichEventsSeqOf[S] = new RichEventsSeqOf[S](events)
+    implicit def toRichEventsSeq(events: EventsSeq): RichEventsSeqOf[AR] = new RichEventsSeqOf[AR](events)
 
     implicit protected def ok(event: Event): CommandResult = Left(Seq(event))
     implicit protected def error(error: Error): CommandResult = Right(error)
@@ -20,22 +20,22 @@ trait AggregateFactory[S <: AggregateRoot[S]] extends FactoryOf[S]
 
 object AggregateFactory
 {
-    trait CommandOf[S]
-    trait EventOf[S]
-    trait ErrorOf[S]
+    trait CommandOf[AR]
+    trait EventOf[AR]
+    trait ErrorOf[AR]
 
-    type EventsSeqOf[S] = Seq[EventOf[S]]
-    type CommandResultOf[S] = Either[EventsSeqOf[S], ErrorOf[S]]
+    type EventsSeqOf[AR] = Seq[EventOf[AR]]
+    type CommandResultOf[AR] = Either[EventsSeqOf[AR], ErrorOf[AR]]
 
-    trait FactoryOf[S]
+    trait FactoryOf[AR]
     {
-        def create: S
+        def create: AR
     }
 
-    implicit class RichEventsSeqOf[S <: AggregateRoot[S]](val events: EventsSeqOf[S]) extends AnyVal
+    implicit class RichEventsSeqOf[AR <: AggregateRoot[AR]](val events: EventsSeqOf[AR]) extends AnyVal
     {
-        def toState()(implicit f: FactoryOf[S]): S = events.foldLeft(f.create)((s, e) => s(e))
+        def mkRoot()(implicit f: FactoryOf[AR]): AR = events.foldLeft(f.create)((ar, e) => ar(e))
 
-        def !(command: CommandOf[S])(implicit f: FactoryOf[S]): CommandResultOf[S] = toState ! command
+        def !(command: CommandOf[AR])(implicit f: FactoryOf[AR]): CommandResultOf[AR] = mkRoot ! command
     }
 }

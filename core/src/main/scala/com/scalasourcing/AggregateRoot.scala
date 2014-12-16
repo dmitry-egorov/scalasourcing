@@ -2,18 +2,18 @@ package com.scalasourcing
 
 import com.scalasourcing.AggregateFactory._
 
-trait AggregateRoot[S <: AggregateRoot[S]]
+trait AggregateRoot[AR <: AggregateRoot[AR]]
 {
-    self: S =>
+    self: AR =>
 
-    def apply(event: EventOf[S]): S
-    def apply(command: CommandOf[S]): CommandResultOf[S]
+    def apply(event: EventOf[AR]): AR
+    def apply(command: CommandOf[AR]): CommandResultOf[AR]
 
-    def append(events: EventsSeqOf[S]): S = events.foldLeft(self)((s, e) => s(e))
-    def appendResultOf(command: CommandOf[S]): S = self + (self ! command).left.get
+    def append(events: EventsSeqOf[AR]): AR = events.foldLeft(self)((ar, e) => ar(e))
+    def appendResultOf(command: CommandOf[AR]): AR = self + (self ! command).left.get
 
-    def +(event: EventOf[S]): S = self(event)
-    def +(events: EventsSeqOf[S]): S = append(events)
-    def !(command: CommandOf[S]): CommandResultOf[S] = self(command)
-    def +!(command: CommandOf[S]): S = appendResultOf(command)
+    def +(event: EventOf[AR]): AR = self(event)
+    def +(events: EventsSeqOf[AR]): AR = append(events)
+    def !(command: CommandOf[AR]): CommandResultOf[AR] = self(command)
+    def +!(command: CommandOf[AR]): AR = appendResultOf(command)
 }
