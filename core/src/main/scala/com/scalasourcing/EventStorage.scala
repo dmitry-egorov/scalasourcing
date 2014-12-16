@@ -1,6 +1,6 @@
 package com.scalasourcing
 
-import com.scalasourcing.AggregateRoot.EventsSeqOf
+import com.scalasourcing.AggregateFactory.EventsSeqOf
 
 class EventStorage
 {

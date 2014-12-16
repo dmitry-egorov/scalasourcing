@@ -10,11 +10,11 @@ It's just started and doesn't allow much for now. But I want to grow it into the
 Here's how an aggregate root is defined:
 
 ```scala
-import com.scalasourcing.AggregateRoot
+import com.scalasourcing._
 
-case class Upvote()
+sealed trait Upvote extends AggregateRoot[Upvote]
 
-object Upvote extends AggregateRoot[Upvote]
+object Upvote extends AggregateFactory[Upvote]
 {
     case class Set() extends Command
     case class Cancel() extends Command
@@ -25,30 +25,36 @@ object Upvote extends AggregateRoot[Upvote]
     case class WasSetError() extends Error
     case class WasNotSetError() extends Error
 
-    def apply(state: Option[Upvote], event: Event): Option[Upvote] = (state, event) match
+    case class SetUpvote() extends Upvote
     {
-        case (None, $Set())                => Upvote()
-        case (Some(Upvote()), Cancelled()) => None
-        case _                             => state
+        def apply(event: Event): Upvote = event match
+        {
+            case Cancelled() => UnsetUpvote()
+            case _           => this
+        }
+
+        def apply(command: Command): CommandResult = command match
+        {
+            case Set()    => WasSetError()
+            case Cancel() => Cancelled()
+        }
+    }
+    case class UnsetUpvote() extends Upvote
+    {
+        def apply(event: Event): Upvote = event match
+        {
+            case $Set() => SetUpvote()
+            case _      => this
+        }
+
+        def apply(command: Command): CommandResult = command match
+        {
+            case Set()    => $Set()
+            case Cancel() => WasNotSetError()
+        }
     }
 
-    def apply(state: Option[Upvote], command: Command): CommandResult = state match
-    {
-        case None           => whenNone(command)
-        case Some(Upvote()) => whenSome(command)
-    }
-
-    private def whenNone(command: Command): CommandResult = command match
-    {
-        case Set()    => $Set()
-        case Cancel() => WasNotSetError()
-    }
-
-    private def whenSome(command: Command): CommandResult = command match
-    {
-        case Set()    => WasSetError()
-        case Cancel() => Cancelled()
-    }
+    def create: Upvote = UnsetUpvote()
 }
 ```
 
@@ -69,7 +75,7 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 
     test("Set upvote should not be set again")
     {
-        given it_was $Set() when_I Set() then WasSetError()
+        given it_was $Set() when_I Set() then_expect WasSetError()
     }
 
     test("Set upvote should be cancelled")
@@ -79,7 +85,7 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 
     test("Unset upvote should not be cancelled")
     {
-        given_nothing when_I Cancel() then WasNotSetError()
+        given_nothing when_I Cancel() then_expect WasNotSetError()
     }
 
     test("An upvote should be set when it was set and then cancelled")
@@ -89,10 +95,9 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 
     test("An upvote should not be cancelled when it was set and then cancelled")
     {
-        given it_was $Set() and Cancelled() when_I Cancel() then WasNotSetError()
+        given it_was $Set() and Cancelled() when_I Cancel() then_expect WasNotSetError()
     }
 }
-
 ```
 
 ## Installation

@@ -1,23 +1,24 @@
 package com.scalasourcing.bdd
 
-import com.scalasourcing.AggregateRoot._
+import com.scalasourcing.AggregateFactory._
+import com.scalasourcing.AggregateRoot
 
-trait AggregateBDD[S]
+trait AggregateBDD[S <: AggregateRoot[S]]
 {
     def given: EmptyFlowGiven = EmptyFlowGiven()
-    def given_nothing: FlowGiven = FlowGiven(None)
+    def given_nothing(implicit f: F[S]): FlowGiven = FlowGiven(f.create)
 
     case class EmptyFlowGiven()
     {
-        def it_was(events: EventOf[S]*)(implicit ea: EventApplicationOf[S]): FlowGiven = FlowGiven(events toState)
-        def nothing = FlowGiven(None)
+        def it_was(events: EventOf[S]*)(implicit f: F[S]): FlowGiven = FlowGiven(events toState)
+        def nothing(implicit f: F[S]) = FlowGiven(f.create)
     }
 
-    case class FlowGiven(state: Option[S])
+    case class FlowGiven(state: S)
     {
-        def and(events: EventOf[S]*)(implicit ea: EventApplicationOf[S]): FlowGiven = FlowGiven(state + events)
+        def and(events: EventOf[S]*): FlowGiven = FlowGiven(state + events)
 
-        def when_I(command: CommandOf[S])(implicit ca: CommandApplicationOf[S]): FlowWhen = FlowWhen(state ! command)
+        def when_I(command: CommandOf[S]): FlowWhen = FlowWhen(state ! command)
     }
 
     case class FlowWhen(eventsTry: CommandResultOf[S])

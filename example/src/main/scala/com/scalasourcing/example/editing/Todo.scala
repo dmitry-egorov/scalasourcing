@@ -1,10 +1,10 @@
 package com.scalasourcing.example.editing
 
-import com.scalasourcing.AggregateRoot
+import com.scalasourcing._
 
-case class Todo(text: PlainText)
+sealed trait Todo extends AggregateRoot[Todo]
 
-object Todo extends AggregateRoot[Todo]
+object Todo extends AggregateFactory[Todo]
 {
     case class Add(initialText: PlainText) extends Command
     case class Edit(newText: PlainText) extends Command
@@ -19,59 +19,51 @@ object Todo extends AggregateRoot[Todo]
     case class NewTextIsEmptyError() extends Error
     case class NewTextIsTheSameAsTheOldError() extends Error
 
-    def apply(state: Option[Todo], event: Event): Option[Todo] = (state, event) match
+    case class NonExitingTodo() extends Todo
     {
-        case (None, Added(text))           => Todo(text)
-        case (Some(Todo(_)), Edited(text)) => Todo(text)
-        case (Some(Todo(_)), Removed())    => None
-        case _                             => state
+        def apply(event: Event): Todo = event match
+        {
+            case Added(text) => ExistingTodo(text)
+            case _           => this
+        }
+
+        def apply(command: Command): CommandResult = command match
+        {
+            case Add(text) => add(text)
+            case Edit(_)   => TodoDidNotExistError()
+            case Remove()  => TodoDidNotExistError()
+        }
+
+        def add(text: PlainText): CommandResult =
+        {
+            if (text.isEmpty) NewTextIsEmptyError()
+            else Added(text)
+        }
     }
 
-    def apply(state: Option[Todo], command: Command): CommandResult =
+    case class ExistingTodo(text: PlainText) extends Todo
     {
-        def r: CommandResult = state match
+        def apply(event: Event): Todo = event match
         {
-            case None             => whenNone
-            case Some(Todo(text)) => whenSome(text)
+            case Edited(newText) => ExistingTodo(newText)
+            case Removed()       => NonExitingTodo()
+            case _               => this
         }
 
-        def whenNone: CommandResult =
+        def apply(command: Command): CommandResult = command match
         {
-            def r: CommandResult = command match
-            {
-                case Add(text) => add(text)
-                case Edit(_)   => TodoDidNotExistError()
-                case Remove()  => TodoDidNotExistError()
-            }
-
-            def add(text: PlainText): CommandResult =
-            {
-                if (text.isEmpty) NewTextIsEmptyError()
-                else Added(text)
-            }
-
-            r
+            case Add(_)        => TodoExistedError()
+            case Edit(newText) => edit(newText)
+            case Remove()      => Removed()
         }
 
-        def whenSome(text: PlainText): CommandResult =
+        def edit(newText: PlainText): CommandResult =
         {
-            def r: CommandResult = command match
-            {
-                case Add(_)        => TodoExistedError()
-                case Edit(newText) => edit(newText)
-                case Remove()      => Removed()
-            }
-
-            def edit(newText: PlainText): CommandResult =
-            {
-                if (newText.isEmpty) NewTextIsEmptyError()
-                else if (newText == text) NewTextIsTheSameAsTheOldError()
-                else Edited(newText)
-            }
-
-            r
+            if (newText.isEmpty) NewTextIsEmptyError()
+            else if (newText == text) NewTextIsTheSameAsTheOldError()
+            else Edited(newText)
         }
-
-        r
     }
+
+    def create: Todo = NonExitingTodo()
 }

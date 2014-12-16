@@ -1,11 +1,10 @@
 package com.scalasourcing.example.apps.simple
 
-import com.scalasourcing.example.editing.Todo
 import com.scalasourcing.example.editing.Todo._
 
 object SimpleApp extends App
 {
-    var todo = Option.empty[Todo]
+    var todo = f.create
 
     todo = todo +! Add("Greet") +! Edit("Greet the World.")
 
