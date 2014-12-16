@@ -2,9 +2,9 @@ package com.scalasourcing
 
 import com.scalasourcing.AggregateFactory._
 
-trait AggregateFactory[S <: AggregateRoot[S]] extends F[S]
+trait AggregateFactory[S <: AggregateRoot[S]] extends FactoryOf[S]
 {
-    implicit val f: F[S] = this
+    implicit val f: FactoryOf[S] = this
 
     type Command = CommandOf[S]
     type Event = EventOf[S]
@@ -27,8 +27,6 @@ object AggregateFactory
     type EventsSeqOf[S] = Seq[EventOf[S]]
     type CommandResultOf[S] = Either[EventsSeqOf[S], ErrorOf[S]]
 
-    type F[S] = FactoryOf[S]
-
     trait FactoryOf[S]
     {
         def create: S
@@ -36,8 +34,8 @@ object AggregateFactory
 
     implicit class RichEventsSeqOf[S <: AggregateRoot[S]](val events: EventsSeqOf[S]) extends AnyVal
     {
-        def toState()(implicit f: F[S]): S = events.foldLeft(f.create)((s, e) => s(e))
+        def toState()(implicit f: FactoryOf[S]): S = events.foldLeft(f.create)((s, e) => s(e))
 
-        def !(command: CommandOf[S])(implicit f: F[S]): CommandResultOf[S] = toState ! command
+        def !(command: CommandOf[S])(implicit f: FactoryOf[S]): CommandResultOf[S] = toState ! command
     }
 }

@@ -6,12 +6,12 @@ import com.scalasourcing.AggregateRoot
 trait AggregateBDD[S <: AggregateRoot[S]]
 {
     def given: EmptyFlowGiven = EmptyFlowGiven()
-    def given_nothing(implicit f: F[S]): FlowGiven = FlowGiven(f.create)
+    def given_nothing(implicit f: FactoryOf[S]): FlowGiven = FlowGiven(f.create)
 
     case class EmptyFlowGiven()
     {
-        def it_was(events: EventOf[S]*)(implicit f: F[S]): FlowGiven = FlowGiven(events toState)
-        def nothing(implicit f: F[S]) = FlowGiven(f.create)
+        def it_was(events: EventOf[S]*)(implicit f: FactoryOf[S]): FlowGiven = FlowGiven(events toState)
+        def nothing(implicit f: FactoryOf[S]) = FlowGiven(f.create)
     }
 
     case class FlowGiven(state: S)

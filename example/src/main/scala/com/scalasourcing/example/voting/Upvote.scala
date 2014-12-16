@@ -6,44 +6,44 @@ sealed trait Upvote extends AggregateRoot[Upvote]
 
 object Upvote extends AggregateFactory[Upvote]
 {
-    case class Set() extends Command
+    case class Cast() extends Command
     case class Cancel() extends Command
 
-    case class $Set() extends Event
+    case class $Cast() extends Event
     case class Cancelled() extends Event
 
-    case class WasSetError() extends Error
-    case class WasNotSetError() extends Error
+    case class WasAlreadyCastError() extends Error
+    case class WasNotCastError() extends Error
 
-    case class SetUpvote() extends Upvote
+    case class CastUpvote() extends Upvote
     {
         def apply(event: Event): Upvote = event match
         {
-            case Cancelled() => UnsetUpvote()
+            case Cancelled() => NotCastUpvote()
             case _           => this
         }
 
         def apply(command: Command): CommandResult = command match
         {
-            case Set()    => WasSetError()
+            case Cast()    => WasAlreadyCastError()
             case Cancel() => Cancelled()
         }
     }
-    case class UnsetUpvote() extends Upvote
+    case class NotCastUpvote() extends Upvote
     {
         def apply(event: Event): Upvote = event match
         {
-            case $Set() => SetUpvote()
+            case $Cast() => CastUpvote()
             case _      => this
         }
 
         def apply(command: Command): CommandResult = command match
         {
-            case Set()    => $Set()
-            case Cancel() => WasNotSetError()
+            case Cast()    => $Cast()
+            case Cancel() => WasNotCastError()
         }
     }
 
-    def create: Upvote = UnsetUpvote()
+    def create: Upvote = NotCastUpvote()
 }
 

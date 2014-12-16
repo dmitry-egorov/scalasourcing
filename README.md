@@ -16,45 +16,45 @@ sealed trait Upvote extends AggregateRoot[Upvote]
 
 object Upvote extends AggregateFactory[Upvote]
 {
-    case class Set() extends Command
+    case class Cast() extends Command
     case class Cancel() extends Command
 
-    case class $Set() extends Event
+    case class $Cast() extends Event
     case class Cancelled() extends Event
 
-    case class WasSetError() extends Error
-    case class WasNotSetError() extends Error
+    case class WasAlreadyCastError() extends Error
+    case class WasNotCastError() extends Error
 
-    case class SetUpvote() extends Upvote
+    case class CastUpvote() extends Upvote
     {
         def apply(event: Event): Upvote = event match
         {
-            case Cancelled() => UnsetUpvote()
+            case Cancelled() => NotCastUpvote()
             case _           => this
         }
 
         def apply(command: Command): CommandResult = command match
         {
-            case Set()    => WasSetError()
+            case Cast()    => WasAlreadyCastError()
             case Cancel() => Cancelled()
         }
     }
-    case class UnsetUpvote() extends Upvote
+    case class NotCastUpvote() extends Upvote
     {
         def apply(event: Event): Upvote = event match
         {
-            case $Set() => SetUpvote()
+            case $Cast() => CastUpvote()
             case _      => this
         }
 
         def apply(command: Command): CommandResult = command match
         {
-            case Set()    => $Set()
-            case Cancel() => WasNotSetError()
+            case Cast()    => $Cast()
+            case Cancel() => WasNotCastError()
         }
     }
 
-    def create: Upvote = UnsetUpvote()
+    def create: Upvote = NotCastUpvote()
 }
 ```
 
@@ -68,34 +68,34 @@ import org.scalatest._
 
 class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 {
-    test("An upvote should be set")
+    test("An upvote should be cast")
     {
-        given_nothing when_I Set() then_it_is $Set()
+        given_nothing when_I Cast() then_it_is $Cast()
     }
 
-    test("Set upvote should not be set again")
+    test("Cast upvote should not be cast again")
     {
-        given it_was $Set() when_I Set() then_expect WasSetError()
+        given it_was $Cast() when_I Cast() then_expect WasAlreadyCastError()
     }
 
-    test("Set upvote should be cancelled")
+    test("Cast upvote should be cancelled")
     {
-        given it_was $Set() when_I Cancel() then_it_is Cancelled()
+        given it_was $Cast() when_I Cancel() then_it_is Cancelled()
     }
 
-    test("Unset upvote should not be cancelled")
+    test("Not cast upvote should not be cancelled")
     {
-        given_nothing when_I Cancel() then_expect WasNotSetError()
+        given_nothing when_I Cancel() then_expect WasNotCastError()
     }
 
-    test("An upvote should be set when it was set and then cancelled")
+    test("An upvote should be cast when it was cast and then cancelled")
     {
-        given it_was $Set() and Cancelled() when_I Set() then_it_is $Set()
+        given it_was $Cast() and Cancelled() when_I Cast() then_it_is $Cast()
     }
 
-    test("An upvote should not be cancelled when it was set and then cancelled")
+    test("An upvote should not be cancelled when it was cast and then cancelled")
     {
-        given it_was $Set() and Cancelled() when_I Cancel() then_expect WasNotSetError()
+        given it_was $Cast() and Cancelled() when_I Cancel() then_expect WasNotCastError()
     }
 }
 ```
