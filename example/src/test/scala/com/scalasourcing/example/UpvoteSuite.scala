@@ -7,33 +7,33 @@ import org.scalatest._
 
 class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 {
-    test("An upvote should be cast")
+    test("An upvote should be casted")
     {
-        given_nothing when_I Cast() then_it_is $Cast()
+        given_nothing when_I Cast() then_it_is Casted()
     }
 
-    test("Cast upvote should not be cast again")
+    test("Casted upvote should not be casted again")
     {
-        given it_was $Cast() when_I Cast() then_expect WasAlreadyCastError()
+        given it_was Casted() when_I Cast() then_expect WasAlreadyCastedError()
     }
 
-    test("Cast upvote should be cancelled")
+    test("Casted upvote should be cancelled")
     {
-        given it_was $Cast() when_I Cancel() then_it_is Cancelled()
+        given it_was Casted() when_I Cancel() then_it_is Cancelled()
     }
 
-    test("Not cast upvote should not be cancelled")
+    test("Not casted upvote should not be cancelled")
     {
-        given_nothing when_I Cancel() then_expect WasNotCastError()
+        given_nothing when_I Cancel() then_expect WasNotCastedError()
     }
 
-    test("An upvote should be cast when it was cast and then cancelled")
+    test("An upvote should be casted when it was casted and then cancelled")
     {
-        given it_was $Cast() and Cancelled() when_I Cast() then_it_is $Cast()
+        given it_was Casted() and Cancelled() when_I Cast() then_it_is Casted()
     }
 
-    test("An upvote should not be cancelled when it was cast and then cancelled")
+    test("An upvote should not be cancelled when it was casted and then cancelled")
     {
-        given it_was $Cast() and Cancelled() when_I Cancel() then_expect WasNotCastError()
+        given it_was Casted() and Cancelled() when_I Cancel() then_expect WasNotCastedError()
     }
 }

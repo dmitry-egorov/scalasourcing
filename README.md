@@ -19,43 +19,43 @@ object Upvote extends AggregateFactory[Upvote]
     case class Cast() extends Command
     case class Cancel() extends Command
 
-    case class $Cast() extends Event
+    case class Casted() extends Event
     case class Cancelled() extends Event
 
-    case class WasAlreadyCastError() extends Error
-    case class WasNotCastError() extends Error
+    case class WasAlreadyCastedError() extends Error
+    case class WasNotCastedError() extends Error
 
-    case class CastUpvote() extends Upvote
+    case class CastedUpvote() extends Upvote
     {
         def apply(event: Event): Upvote = event match
         {
-            case Cancelled() => NotCastUpvote()
+            case Cancelled() => NotCastedUpvote()
             case _           => this
         }
 
         def apply(command: Command): CommandResult = command match
         {
-            case Cast()   => WasAlreadyCastError()
+            case Cast()   => WasAlreadyCastedError()
             case Cancel() => Cancelled()
         }
     }
 
-    case class NotCastUpvote() extends Upvote
+    case class NotCastedUpvote() extends Upvote
     {
         def apply(event: Event): Upvote = event match
         {
-            case $Cast() => CastUpvote()
+            case Casted() => CastedUpvote()
             case _       => this
         }
 
         def apply(command: Command): CommandResult = command match
         {
-            case Cast()   => $Cast()
-            case Cancel() => WasNotCastError()
+            case Cast()   => Casted()
+            case Cancel() => WasNotCastedError()
         }
     }
 
-    def create: Upvote = NotCastUpvote()
+    def create: Upvote = NotCastedUpvote()
 }
 ```
 
@@ -69,34 +69,34 @@ import org.scalatest._
 
 class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 {
-    test("An upvote should be cast")
+    test("An upvote should be casted")
     {
-        given_nothing when_I Cast() then_it_is $Cast()
+        given_nothing when_I Cast() then_it_is Casted()
     }
 
-    test("Cast upvote should not be cast again")
+    test("Casted upvote should not be casted again")
     {
-        given it_was $Cast() when_I Cast() then_expect WasAlreadyCastError()
+        given it_was Casted() when_I Cast() then_expect WasAlreadyCastedError()
     }
 
-    test("Cast upvote should be cancelled")
+    test("Casted upvote should be cancelled")
     {
-        given it_was $Cast() when_I Cancel() then_it_is Cancelled()
+        given it_was Casted() when_I Cancel() then_it_is Cancelled()
     }
 
-    test("Not cast upvote should not be cancelled")
+    test("Not casted upvote should not be cancelled")
     {
-        given_nothing when_I Cancel() then_expect WasNotCastError()
+        given_nothing when_I Cancel() then_expect WasNotCastedError()
     }
 
-    test("An upvote should be cast when it was cast and then cancelled")
+    test("An upvote should be casted when it was casted and then cancelled")
     {
-        given it_was $Cast() and Cancelled() when_I Cast() then_it_is $Cast()
+        given it_was Casted() and Cancelled() when_I Cast() then_it_is Casted()
     }
 
-    test("An upvote should not be cancelled when it was cast and then cancelled")
+    test("An upvote should not be cancelled when it was casted and then cancelled")
     {
-        given it_was $Cast() and Cancelled() when_I Cancel() then_expect WasNotCastError()
+        given it_was Casted() and Cancelled() when_I Cancel() then_expect WasNotCastedError()
     }
 }
 ```

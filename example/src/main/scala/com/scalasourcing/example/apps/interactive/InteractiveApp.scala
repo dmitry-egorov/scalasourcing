@@ -73,7 +73,7 @@ object InteractiveApp extends App
             case Edited(text) => s"the item '$id' was edited to '$text'"
             case Removed()    => s"the item '$id' was removed"
 
-            case $Cast()      => s"the item '$id' was upvoted"
+            case Casted()      => s"the item '$id' was upvoted"
             case Cancelled() => s"'$id' item's upvote was cancelled"
 
             case _ => "unknown event"
@@ -88,8 +88,8 @@ object InteractiveApp extends App
         case NewTextIsEmptyError()           => s"todo items can't have empty text"
         case NewTextIsTheSameAsTheOldError() => s"item '$id' already has this text"
 
-        case WasAlreadyCastError()    => s"you have already upvoted item '$id'"
-        case WasNotCastError() => s"you did not upvote item '$id'"
+        case WasAlreadyCastedError()    => s"you have already upvoted item '$id'"
+        case WasNotCastedError() => s"you did not upvote item '$id'"
 
         case _ => "Unknown error"
     }
