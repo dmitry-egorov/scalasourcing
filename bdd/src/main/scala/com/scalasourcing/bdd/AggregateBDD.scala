@@ -28,7 +28,7 @@ trait AggregateBDD[S]
             assert(events == expected, s"Invalid events produced. Expected: $expected. Actual: $events")
         }
 
-        def then(expected: ErrorOf[S]): Unit =
+        def then_expect(expected: ErrorOf[S]): Unit =
         {
             val error = eventsTry.right.get
             assert(error == expected, s"Invalid error produced. Expected: $expected. Actual: $error")

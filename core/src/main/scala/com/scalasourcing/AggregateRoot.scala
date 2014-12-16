@@ -47,7 +47,7 @@ object AggregateRoot
     {
         def toState()(implicit ea: EA[S]): Option[S] = events.foldLeft(Option.empty[S])((s, e) => ea(s, e))
 
-        def !(events: EventsSeqOf[S], command: CommandOf[S])(implicit ca: CA[S], ea: EA[S]): CommandResultOf[S] = toState ! command
+        def !(command: CommandOf[S])(implicit ca: CA[S], ea: EA[S]): CommandResultOf[S] = toState ! command
     }
 
     implicit class RichStateOptionOf[S](val state: Option[S]) extends AnyVal

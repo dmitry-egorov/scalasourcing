@@ -17,7 +17,7 @@ object Todo extends AggregateRoot[Todo]
     case class TodoExistedError() extends Error
     case class TodoDidNotExistError() extends Error
     case class NewTextIsEmptyError() extends Error
-    case class NewTextIsTheSameError() extends Error
+    case class NewTextIsTheSameAsTheOldError() extends Error
 
     def apply(state: Option[Todo], event: Event): Option[Todo] = (state, event) match
     {
@@ -56,7 +56,7 @@ object Todo extends AggregateRoot[Todo]
     private def edit(text: PlainText, newText: PlainText): CommandResult =
     {
         if (newText.isEmpty) NewTextIsEmptyError()
-        else if (newText == text) NewTextIsTheSameError()
+        else if (newText == text) NewTextIsTheSameAsTheOldError()
         else Edited(newText)
     }
 }

@@ -14,12 +14,12 @@ class TodoSuite extends FunSuite with Matchers with AggregateBDD[Todo]
 
     test("A todo with empty text should not be added")
     {
-        given_nothing when_I Add("  ") then NewTextIsEmptyError()
+        given_nothing when_I Add("  ") then_expect NewTextIsEmptyError()
     }
 
     test("A todo should not be added for the second time")
     {
-        given it_was Added("text") when_I Add("text 2") then TodoExistedError()
+        given it_was Added("text") when_I Add("text 2") then_expect TodoExistedError()
     }
 
     test("Added todo should be edited with different text")
@@ -34,22 +34,22 @@ class TodoSuite extends FunSuite with Matchers with AggregateBDD[Todo]
 
     test("A non existing todo should not be edited")
     {
-        given_nothing when_I Edit("text") then TodoDidNotExistError()
+        given_nothing when_I Edit("text") then_expect TodoDidNotExistError()
     }
 
     test("Added todo should not be edited with the same text")
     {
-        given it_was Added("text") when_I Edit("text") then NewTextIsTheSameError()
+        given it_was Added("text") when_I Edit("text") then_expect NewTextIsTheSameAsTheOldError()
     }
 
     test("Edited todo should not be edited again with the same text")
     {
-        given it_was Added("text") and Edited("text 2") when_I Edit("text 2") then NewTextIsTheSameError()
+        given it_was Added("text") and Edited("text 2") when_I Edit("text 2") then_expect NewTextIsTheSameAsTheOldError()
     }
 
     test("Added todo should not be edited to empty text")
     {
-        given it_was Added("text") when_I Edit("  ") then NewTextIsEmptyError()
+        given it_was Added("text") when_I Edit("  ") then_expect NewTextIsEmptyError()
     }
 
     test("A todo should be removed")
@@ -59,6 +59,6 @@ class TodoSuite extends FunSuite with Matchers with AggregateBDD[Todo]
 
     test("A todo should not be removed when it doesn't exist")
     {
-        given_nothing when_I Remove() then TodoDidNotExistError()
+        given_nothing when_I Remove() then_expect TodoDidNotExistError()
     }
 }
