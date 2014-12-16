@@ -1,4 +1,4 @@
-package com.scalasourcing.example.apps.simpleapp
+package com.scalasourcing.example.apps.simple
 
 import com.scalasourcing.example.editing.Todo
 import com.scalasourcing.example.editing.Todo._

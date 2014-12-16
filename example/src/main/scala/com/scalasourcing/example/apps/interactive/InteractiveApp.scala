@@ -1,4 +1,4 @@
-package com.scalasourcing.example.apps.consoleapp
+package com.scalasourcing.example.apps.interactive
 
 import com.scalasourcing.AggregateRoot._
 import com.scalasourcing._
@@ -7,7 +7,7 @@ import com.scalasourcing.example.voting.Upvote._
 
 import scala.io.StdIn
 
-object ConsoleApp extends App
+object InteractiveApp extends App
 {
     val executor = new CommandExecutor
 
