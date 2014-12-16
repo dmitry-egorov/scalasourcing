@@ -2,7 +2,7 @@ package com.scalasourcing
 
 import com.scalasourcing.AggregateRoot._
 
-trait AggregateRoot[S] extends CommandApplicationOf[S] with EventApplicationOf[S]
+trait AggregateRoot[S] extends CA[S] with EA[S]
 {
     implicit val ca: CA[S] = this
     implicit val ea: EA[S] = this

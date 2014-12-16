@@ -22,22 +22,27 @@ object Upvote extends AggregateRoot[Upvote]
         case _                             => state
     }
 
-    def apply(state: Option[Upvote], command: Command): CommandResult = state match
+    def apply(state: Option[Upvote], command: Command): CommandResult =
     {
-        case None           => whenNone(command)
-        case Some(Upvote()) => whenSome(command)
-    }
+        def r = state match
+        {
+            case None           => whenNone
+            case Some(Upvote()) => whenSome
+        }
 
-    private def whenNone(command: Command): CommandResult = command match
-    {
-        case Set()    => $Set()
-        case Cancel() => WasNotSetError()
-    }
+        def whenNone: CommandResult = command match
+        {
+            case Set()    => $Set()
+            case Cancel() => WasNotSetError()
+        }
 
-    private def whenSome(command: Command): CommandResult = command match
-    {
-        case Set()    => WasSetError()
-        case Cancel() => Cancelled()
+        def whenSome: CommandResult = command match
+        {
+            case Set()    => WasSetError()
+            case Cancel() => Cancelled()
+        }
+
+        r
     }
 }
 

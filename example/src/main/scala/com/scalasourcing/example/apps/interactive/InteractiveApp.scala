@@ -9,7 +9,8 @@ import scala.io.StdIn
 
 object InteractiveApp extends App
 {
-    val executor = new CommandExecutor
+    val eventStorage = new EventStorage
+    val executor = new CommandExecutor(eventStorage)
 
     main()
 
@@ -17,79 +18,81 @@ object InteractiveApp extends App
     {
         println("Welcome to The Todo App!")
 
-        var command = ""
-        while (command != "q")
+        var commandText = ""
+        while (commandText != "q")
         {
             print("command> ")
-            command = StdIn.readLine()
+            commandText = StdIn.readLine()
 
-            if (command == "read")
+            if (commandText == "read")
             {
                 println("Your todo items list is empty")
             }
             else
             {
-                execute(command) match
+                execute match
                 {
                     case Left(text)   => println(text)
                     case Right(error) => System.err.println(error)
                 }
             }
+
+            def execute: Either[String, String] =
+            {
+                val tokens = commandText.split(" ").toList.filter(i => !i.trim.isEmpty)
+
+                tokens match
+                {
+                    case "add" :: id :: text        => command(id, new Add(text.mkString(" ")))
+                    case "edit" :: id :: text       => command(id, new Edit(text.mkString(" ")))
+                    case "remove" :: id :: _        => command(id, new Remove())
+                    case "upvote" :: id :: _        => command(id, new Set())
+                    case "cancel-upvote" :: id :: _ => command(id, new Cancel())
+                    case "q" :: _                   => Left("Thank you for using The Todo App! Exiting now...")
+                    case _                          => Right("Bad command")
+                }
+            }
         }
     }
 
-    private def execute(commandText: String): Either[String, String] =
+    def command[S](id: String, command: CommandOf[S])(implicit ea: EA[S], ca: CA[S], m: Manifest[S]): Either[String, String] =
     {
-        val tokens = commandText.split(" ").toList.filter(i => !i.trim.isEmpty)
-
-        tokens match
+        def r = executor.execute(id, command) match
         {
-            case "add" :: id :: text        => command(id, new Add(text.mkString(" ")))
-            case "edit" :: id :: text       => command(id, new Edit(text.mkString(" ")))
-            case "remove" :: id :: _        => command(id, new Remove())
-            case "upvote" :: id :: _        => command(id, new Set())
-            case "cancel-upvote" :: id :: _ => command(id, new Cancel())
-            case "q" :: _                   => Left("Thank you for using The Todo App! Exiting now...")
-            case _                          => Right("Bad command")
+            case Left(seq)    => Left(readableEvents(seq))
+            case Right(error) => Right(readableError(error))
         }
-    }
 
-    private def command[S](id: String, command: CommandOf[S])(implicit ea: EA[S], ca: CA[S], m: Manifest[S]): Either[String, String] =
-    {
-        executor.execute(id, command) match
+        def readableEvents(seq: Seq[AnyRef]): String =
         {
-            case Left(seq)    => Left(readableEvents(id, seq))
-            case Right(error) => Right(readableError(id, error))
-        }
-    }
+            seq
+            .map
+            {
+                case Added(text)  => s"the item '$id' was added with text '$text'"
+                case Edited(text) => s"the item '$id' was edited to '$text'"
+                case Removed()    => s"the item '$id' was removed"
 
-    def readableEvents(id: String, seq: Seq[AnyRef]): String =
-    {
-        seq
-        .map
+                case $Set()      => s"the item '$id' was upvoted"
+                case Cancelled() => s"'$id' item's upvote was cancelled"
+
+                case _ => "unknown event"
+            }
+            .mkString(", ")
+        }
+
+        def readableError(error: AnyRef): String = error match
         {
-            case Added(text)  => s"the item '$id' was added with text '$text'"
-            case Edited(text) => s"the item '$id' was edited to '$text'"
-            case Removed()    => s"the item '$id' was removed"
+            case TodoExistedError()              => s"item '$id' already exists"
+            case TodoDidNotExistError()          => s"item '$id' does not exist"
+            case NewTextIsEmptyError()           => s"todo items can't have empty text"
+            case NewTextIsTheSameAsTheOldError() => s"item '$id' already has this text"
 
-            case $Set()      => s"the item '$id' was upvoted"
-            case Cancelled() => s"'$id' item's upvote was cancelled"
+            case WasSetError()    => s"you have already upvoted item '$id'"
+            case WasNotSetError() => s"you did not upvote item '$id'"
 
-            case _ => "unknown event"
+            case _ => "Unknown error"
         }
-        .mkString(", ")
-    }
 
-    def readableError(id: String, error: AnyRef): String = error match
-    {
-        case TodoExistedError()              => s"item '$id' already exists"
-        case TodoDidNotExistError()          => s"item '$id' does not exist"
-        case NewTextIsEmptyError()           => s"todo items can't have empty text"
-        case NewTextIsTheSameAsTheOldError() => s"item '$id' already has this text"
-
-        case WasSetError()    => s"you have already upvoted item '$id'"
-        case WasNotSetError() => s"you did not upvote item '$id'"
-
-        case _ => "Unknown error"
+        r
     }
 }

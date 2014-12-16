@@ -27,36 +27,51 @@ object Todo extends AggregateRoot[Todo]
         case _                             => state
     }
 
-    def apply(state: Option[Todo], command: Command): CommandResult = state match
+    def apply(state: Option[Todo], command: Command): CommandResult =
     {
-        case None             => whenNone(command)
-        case Some(Todo(text)) => whenSome(command, text)
-    }
+        def r: CommandResult = state match
+        {
+            case None             => whenNone
+            case Some(Todo(text)) => whenSome(text)
+        }
 
-    private def whenNone(command: Command): CommandResult = command match
-    {
-        case Add(text) => add(text)
-        case Edit(_)   => TodoDidNotExistError()
-        case Remove()  => TodoDidNotExistError()
-    }
+        def whenNone: CommandResult =
+        {
+            def r: CommandResult = command match
+            {
+                case Add(text) => add(text)
+                case Edit(_)   => TodoDidNotExistError()
+                case Remove()  => TodoDidNotExistError()
+            }
 
-    private def whenSome(command: Command, text: PlainText): CommandResult = command match
-    {
-        case Add(_)        => TodoExistedError()
-        case Edit(newText) => edit(text, newText)
-        case Remove()      => Removed()
-    }
+            def add(text: PlainText): CommandResult =
+            {
+                if (text.isEmpty) NewTextIsEmptyError()
+                else Added(text)
+            }
 
-    private def add(text: PlainText): CommandResult =
-    {
-        if (text.isEmpty) NewTextIsEmptyError()
-        else Added(text)
-    }
+            r
+        }
 
-    private def edit(text: PlainText, newText: PlainText): CommandResult =
-    {
-        if (newText.isEmpty) NewTextIsEmptyError()
-        else if (newText == text) NewTextIsTheSameAsTheOldError()
-        else Edited(newText)
+        def whenSome(text: PlainText): CommandResult =
+        {
+            def r: CommandResult = command match
+            {
+                case Add(_)        => TodoExistedError()
+                case Edit(newText) => edit(newText)
+                case Remove()      => Removed()
+            }
+
+            def edit(newText: PlainText): CommandResult =
+            {
+                if (newText.isEmpty) NewTextIsEmptyError()
+                else if (newText == text) NewTextIsTheSameAsTheOldError()
+                else Edited(newText)
+            }
+
+            r
+        }
+
+        r
     }
 }
