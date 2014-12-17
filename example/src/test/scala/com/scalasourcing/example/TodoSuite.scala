@@ -1,7 +1,7 @@
 package com.scalasourcing.example
 
-import com.scalasourcing.example.editing.Todo
-import com.scalasourcing.example.editing.Todo._
+import com.scalasourcing.example.domain.editing.Todo
+import com.scalasourcing.example.domain.editing.Todo._
 import com.scalasourcing.bdd.AggregateBDD
 import org.scalatest._
 

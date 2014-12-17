@@ -1,8 +1,10 @@
-package com.scalasourcing
+package com.scalasourcing.backends.memory
 
-import com.scalasourcing.AggregateRootCompanion.EventsSeqOf
+import com.scalasourcing.model.AggregateId
+import com.scalasourcing.model.AggregateRootCompanion.EventsSeqOf
+import com.scalasourcing.services.EventStorage
 
-class EventStorage
+class InMemoryEventStorage extends EventStorage
 {
     private var aggregatesEventsMap: Map[String, Map[AggregateId, Seq[AnyRef]]] = Map.empty
 
@@ -15,12 +17,12 @@ class EventStorage
         events.asInstanceOf[EventsSeqOf[AR]]
     }
 
-    def persist[AR : Manifest](id: AggregateId, events: EventsSeqOf[AR]): Unit =
+    def persist[AR: Manifest](id: AggregateId, events: EventsSeqOf[AR]): Unit =
     {
         val clazz = getClassName
         val eventsMap = getEventsMap(clazz)
         val eventsSeq = getEventsSeq(id, eventsMap)
-        
+
         val newEventsSeq = eventsSeq ++ events
         val newEventsMap = eventsMap.updated(id, newEventsSeq)
         aggregatesEventsMap = aggregatesEventsMap.updated(clazz, newEventsMap)

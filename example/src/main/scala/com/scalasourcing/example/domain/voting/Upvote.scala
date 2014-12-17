@@ -1,6 +1,6 @@
-package com.scalasourcing.example.voting
+package com.scalasourcing.example.domain.voting
 
-import com.scalasourcing._
+import com.scalasourcing.model._
 
 sealed trait Upvote extends AggregateRoot[Upvote]
 

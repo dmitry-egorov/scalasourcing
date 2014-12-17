@@ -1,6 +1,6 @@
-package com.scalasourcing.example.editing
+package com.scalasourcing.example.domain.editing
 
-import com.scalasourcing._
+import com.scalasourcing.model._
 
 sealed trait Todo extends AggregateRoot[Todo]
 

@@ -1,6 +1,6 @@
-package com.scalasourcing
+package com.scalasourcing.model
 
-import com.scalasourcing.AggregateRootCompanion._
+import com.scalasourcing.model.AggregateRootCompanion._
 
 trait AggregateRootCompanion[AR <: AggregateRoot[AR]] extends Factory[AR]
 {

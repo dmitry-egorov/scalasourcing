@@ -1,15 +1,17 @@
 package com.scalasourcing.example.apps.interactive
 
-import com.scalasourcing.AggregateRootCompanion._
-import com.scalasourcing._
-import com.scalasourcing.example.editing.Todo._
-import com.scalasourcing.example.voting.Upvote._
+import com.scalasourcing.backends.memory.InMemoryEventStorage
+import com.scalasourcing.example.domain.editing.Todo._
+import com.scalasourcing.example.domain.voting.Upvote._
+import com.scalasourcing.model.AggregateRootCompanion._
+import com.scalasourcing.model.{AggregateRoot, AggregateRootCompanion}
+import com.scalasourcing.services.CommandExecutor
 
 import scala.io.StdIn
 
 object InteractiveApp extends App
 {
-    val eventStorage = new EventStorage
+    val eventStorage = new InMemoryEventStorage
     val executor = new CommandExecutor(eventStorage)
 
     main()
@@ -73,7 +75,7 @@ object InteractiveApp extends App
             case Edited(text) => s"the item '$id' was edited to '$text'"
             case Removed()    => s"the item '$id' was removed"
 
-            case Casted()      => s"the item '$id' was upvoted"
+            case Casted()    => s"the item '$id' was upvoted"
             case Cancelled() => s"'$id' item's upvote was cancelled"
 
             case _ => "unknown event"
@@ -88,8 +90,8 @@ object InteractiveApp extends App
         case NewTextIsEmptyError()           => s"todo items can't have empty text"
         case NewTextIsTheSameAsTheOldError() => s"item '$id' already has this text"
 
-        case WasAlreadyCastedError()    => s"you have already upvoted item '$id'"
-        case WasNotCastedError() => s"you did not upvote item '$id'"
+        case WasAlreadyCastedError() => s"you have already upvoted item '$id'"
+        case WasNotCastedError()     => s"you did not upvote item '$id'"
 
         case _ => "Unknown error"
     }

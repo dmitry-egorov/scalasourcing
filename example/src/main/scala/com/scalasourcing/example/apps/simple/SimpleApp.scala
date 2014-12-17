@@ -1,6 +1,6 @@
 package com.scalasourcing.example.apps.simple
 
-import com.scalasourcing.example.editing.Todo._
+import com.scalasourcing.example.domain.editing.Todo._
 
 object SimpleApp extends App
 {

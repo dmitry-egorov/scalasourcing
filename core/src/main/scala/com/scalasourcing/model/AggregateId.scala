@@ -1,4 +1,4 @@
-package com.scalasourcing
+package com.scalasourcing.model
 
 case class AggregateId(value: String)
 {

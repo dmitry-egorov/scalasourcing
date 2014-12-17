@@ -10,7 +10,9 @@ It's just started and doesn't allow much for now. But I want to grow it into the
 Here's how an aggregate root is defined:
 
 ```scala
-import com.scalasourcing._
+package com.scalasourcing.example.domain.voting
+
+import com.scalasourcing.model._
 
 sealed trait Upvote extends AggregateRoot[Upvote]
 
@@ -62,9 +64,9 @@ object Upvote extends AggregateRootCompanion[Upvote]
 Here's a suit of tests for that root:
 
 ```scala
+import com.scalasourcing.example.domain.voting.Upvote
+import com.scalasourcing.example.domain.voting.Upvote._
 import com.scalasourcing.bdd.AggregateBDD
-import com.scalasourcing.example.voting.Upvote
-import com.scalasourcing.example.voting.Upvote._
 import org.scalatest._
 
 class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
