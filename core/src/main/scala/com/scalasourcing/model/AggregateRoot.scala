@@ -1,6 +1,6 @@
 package com.scalasourcing.model
 
-import com.scalasourcing.model.AggregateRootCompanion._
+import com.scalasourcing.model.Aggregate._
 
 trait AggregateRoot[AR <: AggregateRoot[AR]]
 {
@@ -15,16 +15,17 @@ trait AggregateRoot[AR <: AggregateRoot[AR]]
     def append(events: EventsSeqOf[AR]): AR = self(events)
     def execute(command: CommandOf[AR]): CommandResultOf[AR] = self(command)
     def appendResultOf(command: CommandOf[AR]): AR = self(self ! command)
-    def stateAndResultOf(command: CommandOf[AR]): (AR, CommandResultOf[AR]) =
+    def stateAndResultOf(command: CommandOf[AR]): StateAndResultOf[AR] =
     {
         val result = self(command)
-        (self(result), result)
+        StateAndResultOf(self(result), result)
     }
 
-    def +(event: EventOf[AR]): AR = self(event)
-    def +(events: EventsSeqOf[AR]): AR = self(events)
-    def +(result: CommandResultOf[AR]): AR = self(result)
-    def !(command: CommandOf[AR]): CommandResultOf[AR] = self(command)
-    def +!(command: CommandOf[AR]): AR = appendResultOf(command)
-    def +!!(command: CommandOf[AR]): (AR, CommandResultOf[AR]) = stateAndResultOf(command)
+    def +(event: EventOf[AR]) = self(event)
+    def +(events: EventsSeqOf[AR]) = self(events)
+    def +(result: CommandResultOf[AR]) = self(result)
+    def !(command: CommandOf[AR]) = self(command)
+    def +!(command: CommandOf[AR]) = appendResultOf(command)
+    def +!!(command: CommandOf[AR]) = stateAndResultOf(command)
 }
+

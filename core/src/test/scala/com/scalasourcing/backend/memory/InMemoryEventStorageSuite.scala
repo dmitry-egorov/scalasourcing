@@ -1,6 +1,6 @@
-package com.scalasourcing.backends.memory
+package com.scalasourcing.backend.memory
 
-import com.scalasourcing.backends.memory.Root.RootEvent
+import com.scalasourcing.backend.memory.Root.RootEvent
 import com.scalasourcing.model.AggregateId
 import org.scalatest.{FunSuite, Matchers}
 
@@ -10,7 +10,7 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers
     {
         //given
         val id = new AggregateId("1")
-        val es = new InMemoryEventStorage
+        val es = new SingleThreadInMemoryEventStorage
 
         //when
         val events = es.get[Root](id)
@@ -23,7 +23,7 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers
     {
         //given
         val id = new AggregateId("1")
-        val es = new InMemoryEventStorage
+        val es = new SingleThreadInMemoryEventStorage
 
         val persistedEvents = Seq(RootEvent())
         es.persist(id, persistedEvents)
@@ -40,7 +40,7 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers
         //given
         val id1 = new AggregateId("1")
         val id2 = new AggregateId("2")
-        val es = new InMemoryEventStorage
+        val es = new SingleThreadInMemoryEventStorage
 
         val persistedEvents1 = Seq(RootEvent())
         val persistedEvents2 = Seq(RootEvent(), RootEvent())

@@ -4,7 +4,7 @@ import com.scalasourcing.model._
 
 sealed trait Todo extends AggregateRoot[Todo]
 
-object Todo extends AggregateRootCompanion[Todo]
+object Todo extends Aggregate[Todo]
 {
     case class Add(initialText: PlainText) extends Command
     case class Edit(newText: PlainText) extends Command

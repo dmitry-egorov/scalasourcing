@@ -1,18 +1,17 @@
 package com.scalasourcing.example.apps.interactive
 
-import com.scalasourcing.backends.memory.InMemoryEventStorage
+import com.scalasourcing.backend.CommandsExecutor
+import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
 import com.scalasourcing.example.domain.editing.Todo._
 import com.scalasourcing.example.domain.voting.Upvote._
-import com.scalasourcing.model.AggregateRootCompanion._
-import com.scalasourcing.model.{AggregateRoot, AggregateRootCompanion}
-import com.scalasourcing.services.CommandExecutor
+import com.scalasourcing.model.Aggregate._
+import com.scalasourcing.model.AggregateRoot
 
 import scala.io.StdIn
 
 object InteractiveApp extends App
 {
-    val eventStorage = new InMemoryEventStorage
-    val executor = new CommandExecutor(eventStorage)
+    val eventStorage = new SingleThreadInMemoryEventStorage with CommandsExecutor
 
     main()
 
@@ -47,19 +46,19 @@ object InteractiveApp extends App
 
         tokens match
         {
-            case "add" :: id :: text        => command(id, new Add(text.mkString(" ")))
-            case "edit" :: id :: text       => command(id, new Edit(text.mkString(" ")))
-            case "remove" :: id :: _        => command(id, new Remove())
-            case "upvote" :: id :: _        => command(id, new Cast())
-            case "cancel-upvote" :: id :: _ => command(id, new Cancel())
+            case "add" :: id :: text        => execute(id, new Add(text.mkString(" ")))
+            case "edit" :: id :: text       => execute(id, new Edit(text.mkString(" ")))
+            case "remove" :: id :: _        => execute(id, new Remove())
+            case "upvote" :: id :: _        => execute(id, new Cast())
+            case "cancel-upvote" :: id :: _ => execute(id, new Cancel())
             case "q" :: _                   => Left("Thank you for using The Todo App! Please, come back!")
             case _                          => Right("Bad command")
         }
     }
 
-    def command[AR <: AggregateRoot[AR] : Factory : Manifest](id: String, command: CommandOf[AR]): Either[String, String] =
+    def execute[AR <: AggregateRoot[AR] : Factory : Manifest](id: String, command: CommandOf[AR]): Either[String, String] =
     {
-        executor.execute(id, command) match
+        eventStorage.execute(id, command) match
         {
             case Left(seq)    => Left(readableEvents(id, seq))
             case Right(error) => Right(readableError(id, error))

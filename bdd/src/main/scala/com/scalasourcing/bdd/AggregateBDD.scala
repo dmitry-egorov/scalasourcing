@@ -1,6 +1,6 @@
 package com.scalasourcing.bdd
 
-import com.scalasourcing.model.AggregateRootCompanion._
+import com.scalasourcing.model.Aggregate._
 import com.scalasourcing.model._
 
 trait AggregateBDD[AR <: AggregateRoot[AR]]

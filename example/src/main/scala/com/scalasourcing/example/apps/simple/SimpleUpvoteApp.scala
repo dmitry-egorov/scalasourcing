@@ -1,29 +1,29 @@
 package com.scalasourcing.example.apps.simple
 
-import com.scalasourcing.example.domain.voting.Upvote
+import com.scalasourcing.backend.CommandsExecutor
+import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
 import com.scalasourcing.example.domain.voting.Upvote._
-import com.scalasourcing.model.AggregateRootCompanion.CommandResultOf
+import com.scalasourcing.model._
 
 object SimpleUpvoteApp extends App
 {
-    var upvoted = factory.seed +!! Cast()
+    val eventStorage = new SingleThreadInMemoryEventStorage with CommandsExecutor
+    eventStorage.subscribe(print)
 
-    println(readable(upvoted._2))
-
-    val cancelled = upvoted._1 ! Cancel()
-
-    println(readable(cancelled))
+    val id = new AggregateId("1")
+    eventStorage.execute(id, Cast())
+    eventStorage.execute(id, Cancel())
 
     println("Thank you for using our beautiful app!")
 
-    def readable(result: CommandResultOf[Upvote]): Any =
+    def print(result: Event): Unit =
     {
-        result.fold(events => events.map
-                              {
-                                  case Casted()    => s"Upvote casted."
-                                  case Cancelled() => s"Upvote cancelled."
-                              }.mkString(", "),
-                    error => "Unexpected error!"
-        )
+        val readable = result match
+        {
+            case Casted()    => s"Upvote casted."
+            case Cancelled() => s"Upvote cancelled."
+        }
+
+        println(readable)
     }
 }

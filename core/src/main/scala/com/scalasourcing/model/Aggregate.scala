@@ -1,8 +1,8 @@
 package com.scalasourcing.model
 
-import com.scalasourcing.model.AggregateRootCompanion._
+import com.scalasourcing.model.Aggregate._
 
-trait AggregateRootCompanion[AR <: AggregateRoot[AR]] extends Factory[AR]
+trait Aggregate[AR <: AggregateRoot[AR]] extends Factory[AR]
 {
     implicit val factory: Factory[AR] = this
 
@@ -18,7 +18,7 @@ trait AggregateRootCompanion[AR <: AggregateRoot[AR]] extends Factory[AR]
     implicit protected def error(error: Error): CommandResult = Right(error)
 }
 
-object AggregateRootCompanion
+object Aggregate
 {
     trait CommandOf[AR]
     trait EventOf[AR]
@@ -26,6 +26,7 @@ object AggregateRootCompanion
 
     type EventsSeqOf[AR] = Seq[EventOf[AR]]
     type CommandResultOf[AR] = Either[EventsSeqOf[AR], ErrorOf[AR]]
+    case class StateAndResultOf[AR](state: AR, result: CommandResultOf[AR])
 
     trait Factory[AR]
     {

@@ -1,12 +1,13 @@
-package com.scalasourcing.backends.memory
+package com.scalasourcing.backend.memory
 
+import com.scalasourcing.backend.EventStorage
+import com.scalasourcing.model.Aggregate._
 import com.scalasourcing.model._
-import com.scalasourcing.model.AggregateRootCompanion._
-import com.scalasourcing.services._
 
-class InMemoryEventStorage extends EventStorage
+class SingleThreadInMemoryEventStorage extends EventStorage
 {
     private var aggregatesEventsMap: Map[String, Map[AggregateId, Seq[AnyRef]]] = Map.empty
+    private var subscribersMap: Map[String, Seq[AnyRef => Unit]] = Map.empty
 
     def get[AR: Manifest](id: AggregateId): EventsSeqOf[AR] =
     {
@@ -26,6 +27,27 @@ class InMemoryEventStorage extends EventStorage
         val newEventsSeq = eventsSeq ++ events
         val newEventsMap = eventsMap.updated(id, newEventsSeq)
         aggregatesEventsMap = aggregatesEventsMap.updated(clazz, newEventsMap)
+
+        subscribersMap
+        .get(clazz)
+        .map(subs => events.map(e => subs.foreach(s => s(e))))
+    }
+
+    def subscribe[AR: Manifest](f: EventOf[AR] => Unit): () => Unit =
+    {
+        val clazz = getClassName
+        val callback: (AnyRef) => Unit = e => f(e.asInstanceOf[EventOf[AR]])
+
+        val subs = subscribersMap.getOrElse(clazz, Seq.empty)
+        val newSubs = subs ++ Seq(callback)
+        subscribersMap = subscribersMap.updated(clazz, newSubs)
+
+        () =>
+        {
+            val subs = subscribersMap.getOrElse(clazz, Seq.empty)
+            val newSubs = subs.filter(i => i != callback)
+            subscribersMap = subscribersMap.updated(clazz, newSubs)
+        }
     }
 
     private def getClassName[T: Manifest]: String =
@@ -37,7 +59,6 @@ class InMemoryEventStorage extends EventStorage
     {
         aggregatesEventsMap.getOrElse(clazz, Map.empty)
     }
-
     private def getEventsSeq(id: AggregateId, eventsMap: Map[AggregateId, Seq[AnyRef]]): Seq[AnyRef] =
     {
         eventsMap.getOrElse(id, Seq.empty)

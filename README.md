@@ -103,6 +103,38 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 }
 ```
 
+And here's how you can use it in an application:
+
+```scala
+import com.scalasourcing.backend.CommandsExecutor
+import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
+import com.scalasourcing.example.domain.voting.Upvote._
+import com.scalasourcing.model._
+
+object SimpleUpvoteApp extends App
+{
+    val eventStorage = new SingleThreadInMemoryEventStorage with CommandsExecutor
+    eventStorage.subscribe(print)
+
+    val id = new AggregateId("1")
+    eventStorage.execute(id, Cast())
+    eventStorage.execute(id, Cancel())
+
+    println("Thank you for using our beautiful app!")
+
+    def print(result: Event): Unit =
+    {
+        val readable = result match
+        {
+            case Casted()    => s"Upvote casted."
+            case Cancelled() => s"Upvote cancelled."
+        }
+
+        println(readable)
+    }
+}
+```
+
 ## Installation
 
 The library is not published yet. Sorry! I actually never done this before in jvm infrastructure and would appreciate any help!

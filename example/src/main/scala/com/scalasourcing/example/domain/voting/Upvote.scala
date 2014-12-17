@@ -4,7 +4,7 @@ import com.scalasourcing.model._
 
 sealed trait Upvote extends AggregateRoot[Upvote]
 
-object Upvote extends AggregateRootCompanion[Upvote]
+object Upvote extends Aggregate[Upvote]
 {
     case class Cast() extends Command
     case class Cancel() extends Command
