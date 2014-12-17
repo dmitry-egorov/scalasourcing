@@ -1,7 +1,7 @@
 package com.scalasourcing.services
 
+import com.scalasourcing.model._
 import com.scalasourcing.model.AggregateRootCompanion._
-import com.scalasourcing.model.{AggregateId, AggregateRoot}
 
 class CommandExecutor(storage: EventStorage)
 {

@@ -1,8 +1,8 @@
 package com.scalasourcing.backends.memory
 
-import com.scalasourcing.model.AggregateId
-import com.scalasourcing.model.AggregateRootCompanion.EventsSeqOf
-import com.scalasourcing.services.EventStorage
+import com.scalasourcing.model._
+import com.scalasourcing.model.AggregateRootCompanion._
+import com.scalasourcing.services._
 
 class InMemoryEventStorage extends EventStorage
 {

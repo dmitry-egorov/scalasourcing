@@ -1,6 +1,6 @@
 package com.scalasourcing.services
 
-import com.scalasourcing.model.AggregateId
+import com.scalasourcing.model._
 import com.scalasourcing.model.AggregateRootCompanion._
 
 trait EventStorage

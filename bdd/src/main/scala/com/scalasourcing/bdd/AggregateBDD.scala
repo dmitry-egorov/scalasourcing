@@ -1,8 +1,7 @@
 package com.scalasourcing.bdd
 
-import com.scalasourcing.model.{AggregateRootCompanion, AggregateRoot}
-import AggregateRootCompanion._
-import com.scalasourcing.model.AggregateRoot
+import com.scalasourcing.model.AggregateRootCompanion._
+import com.scalasourcing.model._
 
 trait AggregateBDD[AR <: AggregateRoot[AR]]
 {
@@ -25,14 +24,18 @@ trait AggregateBDD[AR <: AggregateRoot[AR]]
     {
         def then_it_is(expected: EventOf[AR]*) =
         {
-            val events = eventsTry.left.get
-            assert(events == expected, s"Invalid events produced. Expected: $expected. Actual: $events")
+            eventsTry.fold(
+                events => assert(events == expected, s"Invalid events produced. Expected: $expected. Actual: $events"),
+                error => assert(assertion = false, s"Expected events: $expected, but was error: $error")
+            )
         }
 
         def then_expect(expected: ErrorOf[AR]): Unit =
         {
-            val error = eventsTry.right.get
-            assert(error == expected, s"Invalid error produced. Expected: $expected. Actual: $error")
+            eventsTry.fold(
+                events => assert(assertion = false, s"Expected error $expected, but was events: $events"),
+                error => assert(error == expected, s"Invalid error produced. Expected: $expected. Actual: $error")
+            )
         }
     }
 }

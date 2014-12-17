@@ -47,7 +47,7 @@ object Upvote extends AggregateRootCompanion[Upvote]
         def apply(event: Event) = event match
         {
             case Casted() => CastedUpvote()
-            case _       => this
+            case _        => this
         }
 
         def apply(command: Command) = command match
