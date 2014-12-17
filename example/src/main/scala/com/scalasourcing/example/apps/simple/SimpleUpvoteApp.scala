@@ -3,14 +3,13 @@ package com.scalasourcing.example.apps.simple
 import com.scalasourcing.backend.CommandsExecutor
 import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
 import com.scalasourcing.example.domain.voting.Upvote._
-import com.scalasourcing.model._
 
 object SimpleUpvoteApp extends App
 {
     val eventStorage = new SingleThreadInMemoryEventStorage with CommandsExecutor
     eventStorage.subscribe(print)
 
-    val id = new AggregateId("1")
+    val id = "1"
     eventStorage.execute(id, Cast())
     eventStorage.execute(id, Cancel())
 
