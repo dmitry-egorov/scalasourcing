@@ -1,11 +1,12 @@
 package com.scalasourcing.example.domain.voting
 
+import com.scalasourcing.example.domain.editing.TodoId
 import com.scalasourcing.model._
 
-sealed trait Upvote extends AggregateRoot[Upvote]
-
-object Upvote extends Aggregate[Upvote]
+object Upvote extends Aggregate
 {
+    type Id = TodoId
+
     case class Cast() extends Command
     case class Cancel() extends Command
 
@@ -15,7 +16,7 @@ object Upvote extends Aggregate[Upvote]
     case class WasAlreadyCastedError() extends Error
     case class WasNotCastedError() extends Error
 
-    case class CastedUpvote() extends Upvote
+    case class CastedUpvote() extends State
     {
         def apply(event: Event) = event match
         {
@@ -30,7 +31,7 @@ object Upvote extends Aggregate[Upvote]
         }
     }
 
-    case class NotCastedUpvote() extends Upvote
+    case class NotCastedUpvote() extends State
     {
         def apply(event: Event) = event match
         {

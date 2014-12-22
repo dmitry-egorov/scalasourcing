@@ -1,15 +1,14 @@
 package com.scalasourcing.backend.memory
 
-import com.scalasourcing.backend.memory.Root.RootEvent
-import com.scalasourcing.model.AggregateId
+import com.scalasourcing.backend.memory.Tester._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSuite, Matchers}
 
 class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
 {
     implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
-    val id1 = new AggregateId("1")
-    val id2 = new AggregateId("2")
+    val id1 = TesterId("1")
+    val id2 = TesterId("2")
 
     test("Should return empty messages when nothing was added")
     {
@@ -31,7 +30,7 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
         //given
         val es = createStorage
 
-        val persistedEvents = Seq(RootEvent())
+        val persistedEvents = Seq(SomethingHappened())
         es.tryPersist(id1, persistedEvents, 0)
 
         //when
@@ -49,8 +48,8 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
         //given
         val es = createStorage
 
-        val persistedEvents1 = Seq(RootEvent())
-        val persistedEvents2 = Seq(RootEvent(), RootEvent())
+        val persistedEvents1 = Seq(SomethingHappened())
+        val persistedEvents2 = Seq(SomethingHappened(), SomethingHappened())
         es.tryPersist(id1, persistedEvents1, 0)
         es.tryPersist(id2, persistedEvents2, 0)
 
@@ -71,12 +70,13 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
             e._1 should equal(persistedEvents1)
             e._2 should equal(persistedEvents2)
         }
-
     }
 
-    def createStorage: SingleThreadInMemoryEventStorage[Root] =
+    def createStorage: SingleThreadInMemoryEventStorage
+        {val a: Tester.type} =
     {
-        new SingleThreadInMemoryEventStorage[Root]
+        new SingleThreadInMemoryEventStorage
+        {val a = Tester}
     }
 
 }

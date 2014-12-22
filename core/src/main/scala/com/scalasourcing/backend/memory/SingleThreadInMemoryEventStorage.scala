@@ -1,50 +1,31 @@
 package com.scalasourcing.backend.memory
 
 import com.scalasourcing.backend.EventStorage
-import com.scalasourcing.model.Aggregate._
-import com.scalasourcing.model._
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.collection.concurrent._
+import scala.concurrent.{ExecutionContext, Future}
 
-class SingleThreadInMemoryEventStorage[R <: AggregateRoot[R]](implicit val ec: ExecutionContext, val m: Manifest[R], val f: Factory[R]) extends EventStorage
+abstract class SingleThreadInMemoryEventStorage(implicit val ec: ExecutionContext)
+    extends EventStorage
 {
-    type AR = R
+    private val aggregatesEventsMap: Map[a.Id, a.EventsSeq] = TrieMap.empty
 
-    private var aggregatesEventsMap: Map[String, Map[AggregateId, Seq[AnyRef]]] = Map.empty
-
-    def get(id: AggregateId): Future[EventsSeqOf[AR]] =
+    def get(id: a.Id): Future[a.EventsSeq] =
     {
-        val clazz = getClassName
-        val eventsMap = getEventsMap(clazz)
-        val events = getEventsSeq(id, eventsMap)
-
-        Future.successful(events.asInstanceOf[EventsSeqOf[AR]])
+        Future.successful(getEventsSeq(id))
     }
 
-    def tryPersist(id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Boolean] =
+    def tryPersist(id: a.Id, events: a.EventsSeq, expectedVersion: Int): Future[Boolean] =
     {
-        val clazz = getClassName
-        val eventsMap = getEventsMap(clazz)
-        val eventsSeq = getEventsSeq(id, eventsMap)
+        val eventsSeq = getEventsSeq(id)
 
-        val newEventsSeq = eventsSeq ++ events
-        val newEventsMap = eventsMap.updated(id, newEventsSeq)
-        aggregatesEventsMap = aggregatesEventsMap.updated(clazz, newEventsMap)
+        aggregatesEventsMap(id) = eventsSeq ++ events //Not thread safe
 
         Future.successful(true)
     }
 
-    private def getClassName: String =
+    private def getEventsSeq(id: a.Id): a.EventsSeq =
     {
-        implicitly[Manifest[R]].getClass.getName
-    }
-
-    private def getEventsMap(clazz: String): Map[AggregateId, Seq[AnyRef]] =
-    {
-        aggregatesEventsMap.getOrElse(clazz, Map.empty)
-    }
-    private def getEventsSeq(id: AggregateId, eventsMap: Map[AggregateId, Seq[AnyRef]]): Seq[AnyRef] =
-    {
-        eventsMap.getOrElse(id, Seq.empty)
+        aggregatesEventsMap.getOrElse(id, Seq.empty)
     }
 }

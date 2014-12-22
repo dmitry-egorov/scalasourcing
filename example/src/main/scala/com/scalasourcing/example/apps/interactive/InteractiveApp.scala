@@ -1,7 +1,7 @@
 package com.scalasourcing.example.apps.interactive
 
 import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
-import com.scalasourcing.example.domain.editing.Todo
+import com.scalasourcing.example.domain.editing.{TodoId, Todo}
 import com.scalasourcing.example.domain.editing.Todo._
 import com.scalasourcing.example.domain.voting.Upvote
 import com.scalasourcing.example.domain.voting.Upvote._
@@ -13,8 +13,10 @@ import scala.io.StdIn
 object InteractiveApp extends App
 {
     implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
-    val todoStorage = new SingleThreadInMemoryEventStorage[Todo]
-    val upvoteStorage = new SingleThreadInMemoryEventStorage[Upvote]
+    val todoStorage = new SingleThreadInMemoryEventStorage
+    {val a = Todo}
+    val upvoteStorage = new SingleThreadInMemoryEventStorage
+    {val a = Upvote}
 
     main()
 
@@ -54,12 +56,13 @@ object InteractiveApp extends App
             case "remove" :: id :: _        => executeTodo(id, new Remove())
             case "upvote" :: id :: _        => executeUpvote(id, new Cast())
             case "cancel-upvote" :: id :: _ => executeUpvote(id, new Cancel())
-            case "q" :: _                   => Future.successful(Left("Thank you for using The Todo App! Please, come back!"))
+            case "q" :: _                   => Future
+                                               .successful(Left("Thank you for using The Todo App! Please, come back!"))
             case _                          => Future.successful(Right("Bad command"))
         }
     }
 
-    def executeTodo(id: String, command: Todo.type#Command): Future[Either[String, String]] =
+    def executeTodo(id: TodoId, command: Todo.type#Command): Future[Either[String, String]] =
     {
         todoStorage.execute(id, command).map
         {
@@ -68,7 +71,7 @@ object InteractiveApp extends App
         }
     }
 
-    def executeUpvote(id: String, command: Upvote.type#Command): Future[Either[String, String]] =
+    def executeUpvote(id: TodoId, command: Upvote.type#Command): Future[Either[String, String]] =
     {
         upvoteStorage.execute(id, command).map
         {
@@ -77,7 +80,7 @@ object InteractiveApp extends App
         }
     }
 
-    def readableEvents(id: String, seq: Seq[AnyRef]): String =
+    def readableEvents(id: TodoId, seq: Seq[AnyRef]): String =
     {
         seq
         .map
@@ -94,7 +97,7 @@ object InteractiveApp extends App
         .mkString(", ")
     }
 
-    def readableError(id: String, error: AnyRef): String = error match
+    def readableError(id: TodoId, error: AnyRef): String = error match
     {
         case TodoExistedError()              => s"item '$id' already exists"
         case TodoDidNotExistError()          => s"item '$id' does not exist"

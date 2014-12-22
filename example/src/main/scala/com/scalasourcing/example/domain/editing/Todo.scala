@@ -2,10 +2,17 @@ package com.scalasourcing.example.domain.editing
 
 import com.scalasourcing.model._
 
-sealed trait Todo extends AggregateRoot[Todo]
+case class TodoId(value: String) extends AggregateId
 
-object Todo extends Aggregate[Todo]
+object TodoId
 {
+    implicit def from(s: String): TodoId = TodoId(s)
+}
+
+object Todo extends Aggregate
+{
+    type Id = TodoId
+
     case class Add(initialText: PlainText) extends Command
     case class Edit(newText: PlainText) extends Command
     case class Remove() extends Command
@@ -19,7 +26,7 @@ object Todo extends Aggregate[Todo]
     case class NewTextIsEmptyError() extends Error
     case class NewTextIsTheSameAsTheOldError() extends Error
 
-    case class NonExitingTodo() extends Todo
+    case class NonExitingTodo() extends State
     {
         def apply(event: Event) = event match
         {
@@ -41,7 +48,7 @@ object Todo extends Aggregate[Todo]
         }
     }
 
-    case class ExistingTodo(text: PlainText) extends Todo
+    case class ExistingTodo(text: PlainText) extends State
     {
         def apply(event: Event) = event match
         {

@@ -1,13 +1,7 @@
 package com.scalasourcing.model
 
-case class AggregateId(value: String)
+trait AggregateId extends Product
 {
-    assert(!value.isEmpty)
-
+    def value: String
     override def toString = value
-}
-
-object AggregateId
-{
-    implicit def from(s: String): AggregateId = AggregateId(s)
 }

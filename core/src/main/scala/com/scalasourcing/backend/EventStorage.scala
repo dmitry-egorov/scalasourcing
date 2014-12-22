@@ -1,22 +1,18 @@
 package com.scalasourcing.backend
 
-import com.scalasourcing.model.Aggregate._
 import com.scalasourcing.model._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait EventStorage
 {
-    type AR <: AggregateRoot[AR]
-
-    implicit val f: Factory[AR]
-    implicit val m: Manifest[AR]
     implicit val ec: ExecutionContext
+    val a : Aggregate
 
-    def get(id: AggregateId): Future[EventsSeqOf[AR]]
-    def tryPersist(id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Boolean]
+    def get(id: a.Id): Future[a.EventsSeq]
+    def tryPersist(id: a.Id, events: a.EventsSeq, expectedVersion: Int): Future[Boolean]
 
-    def persist(id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Unit] =
+    def persist(id: a.Id, events: a.EventsSeq, expectedVersion: Int): Future[Unit] =
     {
         tryPersist(id, events, expectedVersion)
         .flatMap(
@@ -26,7 +22,7 @@ trait EventStorage
             )
     }
 
-    def execute(id: AggregateId, command: CommandOf[AR]): Future[CommandResultOf[AR]] =
+    def execute(id: a.Id, command: a.Command): Future[a.CommandResult] =
     {
         tryExecute(id, command)
         .flatMap(
@@ -36,12 +32,12 @@ trait EventStorage
             )
     }
 
-    def tryExecute(id: AggregateId, command: CommandOf[AR]): Future[Option[CommandResultOf[AR]]] =
+    def tryExecute(id: a.Id, command: a.Command): Future[Option[a.CommandResult]] =
     {
         for
         {
             events <- get(id)
-            result = events ! command
+            result = a.seed + events ! command
             persisted <- result match
             {
                 case Left(newEvents) => tryPersist(id, newEvents, events.length)

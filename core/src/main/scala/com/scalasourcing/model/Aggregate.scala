@@ -1,42 +1,40 @@
 package com.scalasourcing.model
 
-import com.scalasourcing.model.Aggregate._
-
-trait Aggregate[AR <: AggregateRoot[AR]] extends Factory[AR]
+trait Aggregate
 {
-    implicit val factory: Factory[AR] = this
+    def seed: State
 
-    type Command = CommandOf[AR]
-    type Event = EventOf[AR]
-    type Error = ErrorOf[AR]
-    type EventsSeq = EventsSeqOf[AR]
-    type CommandResult = CommandResultOf[AR]
-
-    implicit def toRichEventsSeq(events: EventsSeq): RichEventsSeqOf[AR] = new RichEventsSeqOf[AR](events)
+    type Id <: AggregateId
+    trait Command extends AggregateCommand
+    trait Event extends AggregateEvent
+    trait Error extends AggregateError
+    type EventsSeq = Seq[Event]
+    type CommandResult = Either[EventsSeq, Error]
 
     implicit protected def ok(event: Event): CommandResult = Left(Seq(event))
     implicit protected def error(error: Error): CommandResult = Right(error)
+
+    trait State
+    {
+        def apply(event: Event): State
+        def apply(command: Command): CommandResult
+
+        def append(event: Event): State = apply(event)
+        def append(events: EventsSeq): State = events.foldLeft(this)((ar, e) => ar + e)
+        def append(result: CommandResult): State = result.fold(events => append(events), error => this)
+        def execute(command: Command): CommandResult = apply(command)
+        def appendResultOf(command: Command): State = append(execute(command))
+
+        def +(event: Event) = append(event)
+        def +(events: EventsSeq) = append(events)
+        def +(result: CommandResult) = append(result)
+        def !(command: Command) = execute(command)
+        def +!(command: Command) = appendResultOf(command)
+    }
 }
 
 object Aggregate
 {
-    trait CommandOf[AR]
-    trait EventOf[AR]
-    trait ErrorOf[AR]
-
-    type EventsSeqOf[AR] = Seq[EventOf[AR]]
-    type CommandResultOf[AR] = Either[EventsSeqOf[AR], ErrorOf[AR]]
-    case class StateAndResultOf[AR](state: AR, result: CommandResultOf[AR])
-
-    trait Factory[AR]
-    {
-        def seed: AR
-    }
-
-    implicit class RichEventsSeqOf[AR <: AggregateRoot[AR]](val events: EventsSeqOf[AR]) extends AnyVal
-    {
-        def mkRoot()(implicit f: Factory[AR]): AR = events.foldLeft(f.seed)((ar, e) => ar(e))
-
-        def !(command: CommandOf[AR])(implicit f: Factory[AR]): CommandResultOf[AR] = mkRoot ! command
-    }
+    type AggregateEventsSeq = Seq[AggregateEvent]
+    type AggregateCommandResult = Either[AggregateEventsSeq, AggregateError]
 }

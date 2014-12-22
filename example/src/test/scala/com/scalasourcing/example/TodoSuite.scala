@@ -1,12 +1,14 @@
 package com.scalasourcing.example
 
+import com.scalasourcing.bdd.AggregateBDD
 import com.scalasourcing.example.domain.editing.Todo
 import com.scalasourcing.example.domain.editing.Todo._
-import com.scalasourcing.bdd.AggregateBDD
 import org.scalatest._
 
-class TodoSuite extends FunSuite with Matchers with AggregateBDD[Todo]
+class TodoSuite extends FunSuite with Matchers with AggregateBDD
 {
+    val agg = Todo
+
     test("A todo should be added")
     {
         given_nothing when_I Add("text") then_it_is Added("text")

@@ -1,10 +1,11 @@
 package com.scalasourcing.example.apps.simple
 
+import com.scalasourcing.example.domain.editing.Todo
 import com.scalasourcing.example.domain.editing.Todo._
 
 object SimpleTodoApp extends App
 {
-    var todo = factory.seed +! Add("Greet") +! Edit("Greet the World.")
+    var todo = Todo.seed +! Add("Greet") +! Edit("Greet the World.")
 
     println(s"Todo: $todo")
 
