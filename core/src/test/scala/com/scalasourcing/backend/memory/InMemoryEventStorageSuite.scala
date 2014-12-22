@@ -2,10 +2,13 @@ package com.scalasourcing.backend.memory
 
 import com.scalasourcing.backend.memory.Root.RootEvent
 import com.scalasourcing.model.AggregateId
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSuite, Matchers}
 
-class InMemoryEventStorageSuite extends FunSuite with Matchers
+class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
 {
+    implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
+
     test("Should return empty messages when nothing was added")
     {
         //given
@@ -13,10 +16,13 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers
         val es = new SingleThreadInMemoryEventStorage
 
         //when
-        val events = es.get[Root](id)
+        val f = es.get[Root](id)
 
         //then
-        events should be(empty)
+        whenReady(f)
+        {
+            events => events should be(empty)
+        }
     }
 
     test("Should return persisted messages")
@@ -26,13 +32,16 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers
         val es = new SingleThreadInMemoryEventStorage
 
         val persistedEvents = Seq(RootEvent())
-        es.persist(id, persistedEvents)
+        es.tryPersist(id, persistedEvents, 0)
 
         //when
-        val events = es.get[Root](id)
+        val f = es.get[Root](id)
 
         //then
-        events should equal(persistedEvents)
+        whenReady(f)
+        {
+            events => events should equal(persistedEvents)
+        }
     }
 
     test("Should return persisted messages for each aggregate instance")
@@ -44,15 +53,26 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers
 
         val persistedEvents1 = Seq(RootEvent())
         val persistedEvents2 = Seq(RootEvent(), RootEvent())
-        es.persist(id1, persistedEvents1)
-        es.persist(id2, persistedEvents2)
+        es.tryPersist(id1, persistedEvents1, 0)
+        es.tryPersist(id2, persistedEvents2, 0)
 
         //when
-        val events1 = es.get[Root](id1)
-        val events2 = es.get[Root](id2)
+        val f =
+        for
+        {
+            events1 <- es.get[Root](id1)
+            events2 <- es.get[Root](id2)
+        }
+            yield (events1, events2)
+
 
         //then
-        events1 should equal(persistedEvents1)
-        events2 should equal(persistedEvents2)
+        whenReady(f)
+        {
+            (e) =>
+            e._1 should equal(persistedEvents1)
+            e._2 should equal(persistedEvents2)
+        }
+
     }
 }

@@ -4,21 +4,22 @@ import com.scalasourcing.backend.EventStorage
 import com.scalasourcing.model.Aggregate._
 import com.scalasourcing.model._
 
-class SingleThreadInMemoryEventStorage extends EventStorage
+import scala.concurrent.{Future, ExecutionContext}
+
+class SingleThreadInMemoryEventStorage(implicit val ec: ExecutionContext) extends EventStorage
 {
     private var aggregatesEventsMap: Map[String, Map[AggregateId, Seq[AnyRef]]] = Map.empty
-    private var subscribersMap: Map[String, Seq[AnyRef => Unit]] = Map.empty
 
-    def get[AR: Manifest](id: AggregateId): EventsSeqOf[AR] =
+    def get[AR: Manifest](id: AggregateId): Future[EventsSeqOf[AR]] =
     {
         val clazz = getClassName
         val eventsMap = getEventsMap(clazz)
         val events = getEventsSeq(id, eventsMap)
 
-        events.asInstanceOf[EventsSeqOf[AR]]
+        Future.successful(events.asInstanceOf[EventsSeqOf[AR]])
     }
 
-    def persist[AR: Manifest](id: AggregateId, events: EventsSeqOf[AR]): Unit =
+    def tryPersist[AR: Manifest](id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Boolean] =
     {
         val clazz = getClassName
         val eventsMap = getEventsMap(clazz)
@@ -28,26 +29,7 @@ class SingleThreadInMemoryEventStorage extends EventStorage
         val newEventsMap = eventsMap.updated(id, newEventsSeq)
         aggregatesEventsMap = aggregatesEventsMap.updated(clazz, newEventsMap)
 
-        subscribersMap
-        .get(clazz)
-        .map(subs => events.map(e => subs.foreach(s => s(e))))
-    }
-
-    def subscribe[AR: Manifest](f: EventOf[AR] => Unit): () => Unit =
-    {
-        val clazz = getClassName
-        val callback: (AnyRef) => Unit = e => f(e.asInstanceOf[EventOf[AR]])
-
-        val subs = subscribersMap.getOrElse(clazz, Seq.empty)
-        val newSubs = subs ++ Seq(callback)
-        subscribersMap = subscribersMap.updated(clazz, newSubs)
-
-        () =>
-        {
-            val subs = subscribersMap.getOrElse(clazz, Seq.empty)
-            val newSubs = subs.filter(i => i != callback)
-            subscribersMap = subscribersMap.updated(clazz, newSubs)
-        }
+        Future.successful(true)
     }
 
     private def getClassName[T: Manifest]: String =

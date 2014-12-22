@@ -1,17 +1,19 @@
 package com.scalasourcing.example.apps.interactive
 
-import com.scalasourcing.backend.CommandsExecutor
 import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
 import com.scalasourcing.example.domain.editing.Todo._
 import com.scalasourcing.example.domain.voting.Upvote._
 import com.scalasourcing.model.Aggregate._
 import com.scalasourcing.model.AggregateRoot
 
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.io.StdIn
 
 object InteractiveApp extends App
 {
-    val eventStorage = new SingleThreadInMemoryEventStorage with CommandsExecutor
+    implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
+    val eventStorage = new SingleThreadInMemoryEventStorage
 
     main()
 
@@ -31,7 +33,7 @@ object InteractiveApp extends App
             }
             else
             {
-                execute(commandText) match
+                Await.result(execute(commandText), 1 second) match
                 {
                     case Left(text)   => println(text)
                     case Right(error) => System.err.println(error)
@@ -40,7 +42,7 @@ object InteractiveApp extends App
         }
     }
 
-    def execute(commandText: String): Either[String, String] =
+    def execute(commandText: String): Future[Either[String, String]] =
     {
         val tokens = commandText.split(" ").toList.filter(i => !i.trim.isEmpty)
 
@@ -51,14 +53,14 @@ object InteractiveApp extends App
             case "remove" :: id :: _        => execute(id, new Remove())
             case "upvote" :: id :: _        => execute(id, new Cast())
             case "cancel-upvote" :: id :: _ => execute(id, new Cancel())
-            case "q" :: _                   => Left("Thank you for using The Todo App! Please, come back!")
-            case _                          => Right("Bad command")
+            case "q" :: _                   => Future.successful(Left("Thank you for using The Todo App! Please, come back!"))
+            case _                          => Future.successful(Right("Bad command"))
         }
     }
 
-    def execute[AR <: AggregateRoot[AR] : Factory : Manifest](id: String, command: CommandOf[AR]): Either[String, String] =
+    def execute[AR <: AggregateRoot[AR] : Factory : Manifest](id: String, command: CommandOf[AR]): Future[Either[String, String]] =
     {
-        eventStorage.execute(id, command) match
+        eventStorage.execute(id, command).map
         {
             case Left(seq)    => Left(readableEvents(id, seq))
             case Right(error) => Right(readableError(id, error))
