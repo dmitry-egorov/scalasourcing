@@ -1,10 +1,10 @@
 package com.scalasourcing.example.apps.interactive
 
 import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
+import com.scalasourcing.example.domain.editing.Todo
 import com.scalasourcing.example.domain.editing.Todo._
+import com.scalasourcing.example.domain.voting.Upvote
 import com.scalasourcing.example.domain.voting.Upvote._
-import com.scalasourcing.model.Aggregate._
-import com.scalasourcing.model.AggregateRoot
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -13,7 +13,8 @@ import scala.io.StdIn
 object InteractiveApp extends App
 {
     implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
-    val eventStorage = new SingleThreadInMemoryEventStorage
+    val todoStorage = new SingleThreadInMemoryEventStorage[Todo]
+    val upvoteStorage = new SingleThreadInMemoryEventStorage[Upvote]
 
     main()
 
@@ -48,19 +49,28 @@ object InteractiveApp extends App
 
         tokens match
         {
-            case "add" :: id :: text        => execute(id, new Add(text.mkString(" ")))
-            case "edit" :: id :: text       => execute(id, new Edit(text.mkString(" ")))
-            case "remove" :: id :: _        => execute(id, new Remove())
-            case "upvote" :: id :: _        => execute(id, new Cast())
-            case "cancel-upvote" :: id :: _ => execute(id, new Cancel())
+            case "add" :: id :: text        => executeTodo(id, new Add(text.mkString(" ")))
+            case "edit" :: id :: text       => executeTodo(id, new Edit(text.mkString(" ")))
+            case "remove" :: id :: _        => executeTodo(id, new Remove())
+            case "upvote" :: id :: _        => executeUpvote(id, new Cast())
+            case "cancel-upvote" :: id :: _ => executeUpvote(id, new Cancel())
             case "q" :: _                   => Future.successful(Left("Thank you for using The Todo App! Please, come back!"))
             case _                          => Future.successful(Right("Bad command"))
         }
     }
 
-    def execute[AR <: AggregateRoot[AR] : Factory : Manifest](id: String, command: CommandOf[AR]): Future[Either[String, String]] =
+    def executeTodo(id: String, command: Todo.type#Command): Future[Either[String, String]] =
     {
-        eventStorage.execute(id, command).map
+        todoStorage.execute(id, command).map
+        {
+            case Left(seq)    => Left(readableEvents(id, seq))
+            case Right(error) => Right(readableError(id, error))
+        }
+    }
+
+    def executeUpvote(id: String, command: Upvote.type#Command): Future[Either[String, String]] =
+    {
+        upvoteStorage.execute(id, command).map
         {
             case Left(seq)    => Left(readableEvents(id, seq))
             case Right(error) => Right(readableError(id, error))

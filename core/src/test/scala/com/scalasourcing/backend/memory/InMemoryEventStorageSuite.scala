@@ -8,15 +8,16 @@ import org.scalatest.{FunSuite, Matchers}
 class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
 {
     implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
+    val id1 = new AggregateId("1")
+    val id2 = new AggregateId("2")
 
     test("Should return empty messages when nothing was added")
     {
         //given
-        val id = new AggregateId("1")
-        val es = new SingleThreadInMemoryEventStorage
+        val es = createStorage
 
         //when
-        val f = es.get[Root](id)
+        val f = es.get(id1)
 
         //then
         whenReady(f)
@@ -28,14 +29,13 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
     test("Should return persisted messages")
     {
         //given
-        val id = new AggregateId("1")
-        val es = new SingleThreadInMemoryEventStorage
+        val es = createStorage
 
         val persistedEvents = Seq(RootEvent())
-        es.tryPersist(id, persistedEvents, 0)
+        es.tryPersist(id1, persistedEvents, 0)
 
         //when
-        val f = es.get[Root](id)
+        val f = es.get(id1)
 
         //then
         whenReady(f)
@@ -47,9 +47,7 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
     test("Should return persisted messages for each aggregate instance")
     {
         //given
-        val id1 = new AggregateId("1")
-        val id2 = new AggregateId("2")
-        val es = new SingleThreadInMemoryEventStorage
+        val es = createStorage
 
         val persistedEvents1 = Seq(RootEvent())
         val persistedEvents2 = Seq(RootEvent(), RootEvent())
@@ -60,8 +58,8 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
         val f =
         for
         {
-            events1 <- es.get[Root](id1)
-            events2 <- es.get[Root](id2)
+            events1 <- es.get(id1)
+            events2 <- es.get(id2)
         }
             yield (events1, events2)
 
@@ -75,4 +73,10 @@ class InMemoryEventStorageSuite extends FunSuite with Matchers with ScalaFutures
         }
 
     }
+
+    def createStorage: SingleThreadInMemoryEventStorage[Root] =
+    {
+        new SingleThreadInMemoryEventStorage[Root]
+    }
+
 }

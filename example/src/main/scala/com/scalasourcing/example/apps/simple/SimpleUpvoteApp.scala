@@ -1,12 +1,13 @@
 package com.scalasourcing.example.apps.simple
 
 import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
+import com.scalasourcing.example.domain.voting.Upvote
 import com.scalasourcing.example.domain.voting.Upvote._
 
 object SimpleUpvoteApp extends App
 {
     implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
-    val eventStorage = new SingleThreadInMemoryEventStorage
+    val eventStorage = new SingleThreadInMemoryEventStorage[Upvote]
     //TODO: subscribe to events
     val id = "1"
     eventStorage.execute(id, Cast())

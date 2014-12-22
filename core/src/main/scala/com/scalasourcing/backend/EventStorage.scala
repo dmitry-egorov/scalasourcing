@@ -7,12 +7,16 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait EventStorage
 {
+    type AR <: AggregateRoot[AR]
+
+    implicit val f: Factory[AR]
+    implicit val m: Manifest[AR]
     implicit val ec: ExecutionContext
 
-    def get[AR: Manifest](id: AggregateId): Future[EventsSeqOf[AR]]
-    def tryPersist[AR: Manifest](id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Boolean]
+    def get(id: AggregateId): Future[EventsSeqOf[AR]]
+    def tryPersist(id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Boolean]
 
-    def persist[AR: Manifest](id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Unit] =
+    def persist(id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Unit] =
     {
         tryPersist(id, events, expectedVersion)
         .flatMap(
@@ -22,7 +26,7 @@ trait EventStorage
             )
     }
 
-    def execute[AR <: AggregateRoot[AR] : Factory : Manifest](id: AggregateId, command: CommandOf[AR]): Future[CommandResultOf[AR]] =
+    def execute(id: AggregateId, command: CommandOf[AR]): Future[CommandResultOf[AR]] =
     {
         tryExecute(id, command)
         .flatMap(
@@ -32,11 +36,11 @@ trait EventStorage
             )
     }
 
-    def tryExecute[AR <: AggregateRoot[AR] : Factory : Manifest](id: AggregateId, command: CommandOf[AR]): Future[Option[CommandResultOf[AR]]] =
+    def tryExecute(id: AggregateId, command: CommandOf[AR]): Future[Option[CommandResultOf[AR]]] =
     {
         for
         {
-            events <- get[AR](id)
+            events <- get(id)
             result = events ! command
             persisted <- result match
             {

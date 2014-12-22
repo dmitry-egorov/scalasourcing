@@ -6,11 +6,13 @@ import com.scalasourcing.model._
 
 import scala.concurrent.{Future, ExecutionContext}
 
-class SingleThreadInMemoryEventStorage(implicit val ec: ExecutionContext) extends EventStorage
+class SingleThreadInMemoryEventStorage[R <: AggregateRoot[R]](implicit val ec: ExecutionContext, val m: Manifest[R], val f: Factory[R]) extends EventStorage
 {
+    type AR = R
+
     private var aggregatesEventsMap: Map[String, Map[AggregateId, Seq[AnyRef]]] = Map.empty
 
-    def get[AR: Manifest](id: AggregateId): Future[EventsSeqOf[AR]] =
+    def get(id: AggregateId): Future[EventsSeqOf[AR]] =
     {
         val clazz = getClassName
         val eventsMap = getEventsMap(clazz)
@@ -19,7 +21,7 @@ class SingleThreadInMemoryEventStorage(implicit val ec: ExecutionContext) extend
         Future.successful(events.asInstanceOf[EventsSeqOf[AR]])
     }
 
-    def tryPersist[AR: Manifest](id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Boolean] =
+    def tryPersist(id: AggregateId, events: EventsSeqOf[AR], expectedVersion: Int): Future[Boolean] =
     {
         val clazz = getClassName
         val eventsMap = getEventsMap(clazz)
@@ -32,9 +34,9 @@ class SingleThreadInMemoryEventStorage(implicit val ec: ExecutionContext) extend
         Future.successful(true)
     }
 
-    private def getClassName[T: Manifest]: String =
+    private def getClassName: String =
     {
-        implicitly[Manifest[T]].getClass.getName
+        implicitly[Manifest[R]].getClass.getName
     }
 
     private def getEventsMap(clazz: String): Map[AggregateId, Seq[AnyRef]] =
