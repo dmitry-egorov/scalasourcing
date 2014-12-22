@@ -10,8 +10,7 @@ import scala.concurrent._
 object SimpleUpvoteApp extends App
 {
     implicit val ec = ExecutionContext.Implicits.global
-    val eventStorage = new SingleThreadInMemoryEventStorage
-    {val a = Upvote}
+    val eventStorage = new SingleThreadInMemoryEventStorage {val a = Upvote}
 
     val id = "1"
     val f1 = eventStorage.execute(id, Cast()).map(print)

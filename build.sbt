@@ -1,5 +1,3 @@
-
-
 import Dependencies._
 
 lazy val core = (project in file("core")).

@@ -10,14 +10,13 @@ It's just started and doesn't allow much for now. But I want to grow it into the
 Here's how an aggregate root is defined:
 
 ```scala
-package com.scalasourcing.example.domain.voting
-
+import com.scalasourcing.example.domain.editing.TodoId
 import com.scalasourcing.model._
 
-sealed trait Upvote extends AggregateRoot[Upvote]
-
-object Upvote extends AggregateRootCompanion[Upvote]
+object Upvote extends Aggregate
 {
+    type Id = TodoId
+
     case class Cast() extends Command
     case class Cancel() extends Command
 
@@ -27,7 +26,7 @@ object Upvote extends AggregateRootCompanion[Upvote]
     case class WasAlreadyCastedError() extends Error
     case class WasNotCastedError() extends Error
 
-    case class CastedUpvote() extends Upvote
+    case class CastedUpvote() extends State
     {
         def apply(event: Event) = event match
         {
@@ -42,7 +41,7 @@ object Upvote extends AggregateRootCompanion[Upvote]
         }
     }
 
-    case class NotCastedUpvote() extends Upvote
+    case class NotCastedUpvote() extends State
     {
         def apply(event: Event) = event match
         {
@@ -66,11 +65,13 @@ Here's a suit of tests for that root:
 ```scala
 import com.scalasourcing.example.domain.voting.Upvote
 import com.scalasourcing.example.domain.voting.Upvote._
-import com.scalasourcing.bdd.AggregateBDD
+import com.scalasourcing.bdd._
 import org.scalatest._
 
-class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
+class UpvoteSuite extends FunSuite with Matchers with AggregateBDD
 {
+    val agg = Upvote
+
     test("An upvote should be casted")
     {
         given_nothing when_I Cast() then_it_is Casted()
@@ -106,27 +107,34 @@ class UpvoteSuite extends FunSuite with Matchers with AggregateBDD[Upvote]
 And here's how you can use it in an application:
 
 ```scala
-import com.scalasourcing.backend.CommandsExecutor
 import com.scalasourcing.backend.memory.SingleThreadInMemoryEventStorage
+import com.scalasourcing.example.domain.voting.Upvote
 import com.scalasourcing.example.domain.voting.Upvote._
+
+import scala.concurrent.duration._
+import scala.concurrent._
 
 object SimpleUpvoteApp extends App
 {
-    val eventStorage = new SingleThreadInMemoryEventStorage with CommandsExecutor
-    eventStorage.subscribe(print)
+    implicit val ec = ExecutionContext.Implicits.global
+    val eventStorage = new SingleThreadInMemoryEventStorage {val a = Upvote}
 
     val id = "1"
-    eventStorage.execute(id, Cast())
-    eventStorage.execute(id, Cancel())
+    val f1 = eventStorage.execute(id, Cast()).map(print)
+    val f2 = eventStorage.execute(id, Cancel()).map(print)
+
+    Await.ready(Future.sequence(Seq(f1, f2)), 1 second)
 
     println("Thank you for using our beautiful app!")
 
-    def print(result: Event): Unit =
+    def print(result: CommandResult): Unit =
     {
         val readable = result match
         {
-            case Casted()    => s"Upvote casted."
-            case Cancelled() => s"Upvote cancelled."
+            case Left(Casted() :: Nil)    => s"Upvote casted."
+            case Left(Cancelled() :: Nil) => s"Upvote cancelled."
+            case Right(e)                 => s"Error $e."
+            case _                        => s"Unknown result"
         }
 
         println(readable)
